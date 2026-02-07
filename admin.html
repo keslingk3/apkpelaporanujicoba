@@ -527,68 +527,123 @@
     }
 
     // --- PDF 2: BERITA ACARA INVESTIGASI (BARU) ---
+    // --- PDF 2: BERITA ACARA INVESTIGASI (FORMAT TELAAH RSJ) ---
     function generateInvestigationPDF(index) {
-        const data = globalData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        let safeID = data.Ticket_ID || data.ID_Laporan || data.id || 'ID-ERROR';
+        const data = globalData[index];
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-        // Header Biru Resmi
-        doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 40, 'F'); 
-        doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); 
-        doc.text("BERITA ACARA INVESTIGASI INSIDEN", 105, 20, null, null, "center");
-        doc.setFontSize(10); doc.setFont("helvetica", "normal"); 
-        doc.text("Dokumen Rahasia Internal Perusahaan", 105, 30, null, null, "center");
+        // --- 1. HEADER (KOP) ---
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center");
+        doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center");
+        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
 
-        doc.setTextColor(0, 0, 0); doc.setFontSize(10);
-        doc.text(`No. Dokumen: INV/${safeID}`, 15, 50);
-        doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 150, 50);
+        // --- 2. BAGIAN I: DATA PEGAWAI ---
+        let y = 50;
+        doc.setFontSize(10);
+        doc.text("I.    DATA PEGAWAI", 20, y);
+        y += 8;
 
-        // Tabel Data Insiden Dasar
-        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("I. DATA INSIDEN", 15, 60);
-        const basicData = [
-            ["Lokasi Kejadian", data.Ruangan || "-"],
-            ["Waktu Kejadian", data.Waktu_Kejadian || "-"],
-            ["Jenis Insiden", data.Jenis_Laporan || "-"],
-            ["Tipe Cedera", data.Inv_Cedera || "-"]
-        ];
-        doc.autoTable({ startY: 65, body: basicData, theme: 'plain', styles: {fontSize: 10} });
+        doc.setFont("helvetica", "normal");
+        const startX = 25;
+        const colVal = 70;
 
-        // Tabel Hasil Analisa
-        let yPos = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("II. HASIL ANALISA PENYEBAB", 15, yPos);
-        const analysisData = [
-            ["Kondisi Penyebab (Unsafe Condition)", data.Inv_Kondisi || "-"],
-            ["Sumber Penyebab (Source)", data.Inv_Sumber || "-"],
-            ["Tipe Insiden", data.Inv_Type || "-"]
-        ];
-        doc.autoTable({ startY: yPos + 5, head: [['Parameter', 'Hasil Analisa']], body: analysisData, theme: 'grid', headStyles: {fillColor: [220, 220, 220], textColor: 0} });
+        // Helper function
+        const rowData = (label, val) => {
+            doc.text(label, startX, y);
+            doc.text(":", colVal, y);
+            doc.text(String(val || "-"), colVal + 2, y);
+            y += 6;
+        };
 
-        // Uraian & Tindakan (Block Text)
-        yPos = doc.lastAutoTable.finalY + 10;
-        doc.text("III. URAIAN KRONOLOGI LENGKAP", 15, yPos);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        const uraianLines = doc.splitTextToSize(data.Inv_Uraian || "Tidak ada uraian.", 180);
-        doc.text(uraianLines, 15, yPos + 7);
+        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
+        rowData("Unit Kerja/Ruangan", data.Ruangan);
+        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
+        rowData("Tempat, Tanggal Lahir", data.TTL || "-");
+        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
+        
+        // Jabatan (Di form asli ada pilihan dicoret, di digital kita tulis langsung)
+        doc.text("Jabatan", startX, y);
+        doc.text(":", colVal, y);
+        const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120);
+        doc.text(jabatanText, colVal + 2, y);
+        y += 6;
+        
+        // Subtext jabatan
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y);
+        y += 10;
 
-        yPos += 10 + (uraianLines.length * 5);
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-        doc.text("IV. TINDAKAN PERBAIKAN (CORRECTIVE ACTION)", 15, yPos);
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        const actionLines = doc.splitTextToSize(data.Inv_Tindakan || "Tidak ada tindakan tercatat.", 180);
-        doc.text(actionLines, 15, yPos + 7);
+        // --- 3. BAGIAN II: TINDAK LANJUT ---
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y);
+        y += 6;
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "italic");
+        doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y);
+        y += 10;
 
-        // Tanda Tangan
-        yPos += 20 + (actionLines.length * 5);
-        if(yPos > 250) { doc.addPage(); yPos = 40; } // Pindah halaman jika penuh
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+
+        // Gabungkan Uraian Investigasi & Tindakan Perbaikan
+        let contentText = "";
+        
+        if (data.Inv_Uraian) {
+            contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Uraian + "\n\n";
+        }
+        if (data.Inv_Tindakan) {
+            contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Tindakan;
+        }
+        
+        if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
+
+        // Tampilkan Text (Wrap)
+        const splitContent = doc.splitTextToSize(contentText, 160);
+        doc.text(splitContent, 25, y);
+        
+        // Garis-garis titik (Simulasi form tulis tangan jika data kosong)
+        if (!data.Inv_Uraian && !data.Inv_Tindakan) {
+             for(let i=0; i<15; i++) {
+                 y+=7;
+                 doc.text(".......................................................................................................................................................................", 25, y);
+             }
+        } else {
+             y += (splitContent.length * 5) + 10;
+        }
+
+        // --- 4. TANDA TANGAN ---
+        // Cek jika halaman penuh
+        if (y > 240) { doc.addPage(); y = 40; }
+        else { y += 20; }
+
+        const leftX = 50;
+        const rightX = 150;
+
+        doc.setFont("helvetica", "normal");
+        doc.text("Mengetahui,", leftX, y, null, null, "center");
+        doc.text("Pembuat Laporan", rightX, y, null, null, "center");
+        
+        y += 5;
+        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center");
+        
+        y += 25; // Spasi Tanda Tangan
 
         doc.setFont("helvetica", "bold");
-        doc.text("Dibuat Oleh (Investigator),", 30, yPos);
-        doc.text("Disetujui Oleh (Ka. Unit),", 130, yPos);
+        // Nama Kepala Instalasi K3 Sesuai Foto
+        doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
         
-        yPos += 25;
-        doc.text(`( ${data.Inv_Petugas || "...................."} )`, 30, yPos);
-        doc.text(`( ${data.Inv_Nama_Ka || "...................."} )`, 130, yPos);
+        // Nama Admin/Investigator yang login/input
+        doc.text(`( ${data.Inv_Petugas || "...................."} )`, rightX, y, null, null, "center");
 
-        doc.save(`Investigasi_${safeID}.pdf`);
+        // Simpan File
+        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
+        doc.save(`Laporan_Telaah_${safeID}.pdf`);
     }
 
     // Generator QR (Sama)
@@ -604,5 +659,6 @@
 </body>
 
 </html>
+
 
 
