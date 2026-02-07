@@ -117,6 +117,11 @@
     </div>
 
     <div id="menu-page">
+        <div style="text-align:center; margin-bottom:20px; background:#fff; padding:10px; border-radius:10px; border:1px solid #e5e7eb;">
+            <i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> Posisi: 
+            <b id="lokasi-saat-ini">Mendeteksi...</b>
+        </div>
+
         <div class="menu-grid">
             <div class="menu-btn btn-danger" onclick="bukaForm('Kecelakaan Kerja')">
                 <i class="fas fa-user-injured"></i>
@@ -128,7 +133,7 @@
             </div>
             <div class="menu-btn btn-history" onclick="bukaRiwayat()">
                 <i class="fas fa-history"></i>
-                <div><h3>Riwayat Pelaporan</h3><p>Cek Status & Unduh Dokumen</p></div>
+                <div><h3>Riwayat Pelaporan</h3><p>Data Laporan Ruangan Ini</p></div>
             </div>
         </div>
     </div>
@@ -184,6 +189,10 @@
     <div id="history-page" class="hidden">
         <div class="card">
             <h2 style="margin-top:0; text-align:center; color:var(--text); font-size:1.2rem;">Riwayat Pelaporan</h2>
+            <div style="text-align:center; margin-bottom:20px; font-size:0.9rem; color:#6b7280; border-bottom:1px solid #eee; padding-bottom:10px;">
+                Lokasi: <b id="history-location-title">-</b>
+            </div>
+            
             <div id="history-loading" style="text-align:center; padding:20px; color:#6b7280;">
                 <i class="fas fa-spinner fa-spin"></i> Memuat data...
             </div>
@@ -205,7 +214,10 @@
     let historyData = [];
     const urlParams = new URLSearchParams(window.location.search);
     const ruang = urlParams.get('ruang') || "Area Umum";
+    
+    // Set lokasi di UI
     document.getElementById('inputRuangan').value = ruang;
+    document.getElementById('lokasi-saat-ini').innerText = ruang;
 
     function bukaForm(jenis) {
         document.getElementById('menu-page').classList.add('hidden');
@@ -224,10 +236,12 @@
         document.getElementById('menu-page').classList.remove('hidden');
     }
 
-    // --- LOGIKA RIWAYAT DENGAN ANIMASI ---
+    // --- LOGIKA RIWAYAT DENGAN FILTER RUANGAN ---
     function bukaRiwayat() {
         document.getElementById('menu-page').classList.add('hidden');
         document.getElementById('history-page').classList.remove('hidden');
+        document.getElementById('history-location-title').innerText = ruang; // Judul lokasi di riwayat
+        
         const list = document.getElementById('history-list');
         const loading = document.getElementById('history-loading');
         
@@ -237,16 +251,23 @@
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            historyData = data;
+            // === BAGIAN FILTERING PENTING ===
+            // Hanya ambil data yang 'Ruangan'-nya sama dengan 'ruang' dari QR Code
+            const filteredData = data.filter(row => row.Ruangan === ruang);
+            
+            historyData = filteredData; // Simpan data yang sudah difilter
             loading.style.display = 'none';
-            data.reverse();
+            filteredData.reverse(); // Urutkan terbaru
 
-            if(data.length === 0) {
-                list.innerHTML = '<div style="text-align:center; color:#9ca3af;">Belum ada riwayat laporan.</div>';
+            if(filteredData.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:#9ca3af; padding:20px;">
+                    <i class="fas fa-folder-open" style="font-size:2rem; margin-bottom:10px;"></i><br>
+                    Belum ada riwayat laporan di <b>${ruang}</b>.
+                </div>`;
                 return;
             }
 
-            data.forEach((row, index) => {
+            filteredData.forEach((row, index) => {
                 
                 // ANIMASI BADGE
                 let statusBadge = '';
