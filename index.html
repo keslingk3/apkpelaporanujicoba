@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Safety Reporting System</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            margin: 0; padding: 20px; color: var(--text); padding-bottom: 80px;
+        }
+
+        .container { max-width: 600px; margin: auto; }
+
+        /* HEADER */
+        .app-header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
+        .app-header h1 { font-size: 1.5rem; margin: 0; color: var(--primary); font-weight: 800; }
+        .app-header p { font-size: 0.9rem; color: #6b7280; margin-top: 5px; }
+
+        /* CARDS */
+        .card {
+            background: var(--card); padding: 25px; border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); margin-bottom: 20px;
+        }
+
+        /* MENU BUTTONS */
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .menu-btn {
+            display: flex; align-items: center; gap: 15px;
+            padding: 20px; border-radius: 15px; cursor: pointer;
+            border: 1px solid transparent; transition: all 0.2s;
+            background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .menu-btn:active { transform: scale(0.98); }
+        .menu-btn i { font-size: 1.8rem; }
+        .menu-btn h3 { margin: 0; font-size: 1rem; font-weight: 600; }
+        .menu-btn p { margin: 2px 0 0; font-size: 0.8rem; color: #6b7280; }
+
+        .btn-danger { border-left: 5px solid var(--danger); } .btn-danger i { color: var(--danger); }
+        .btn-warning { border-left: 5px solid var(--warning); } .btn-warning i { color: var(--warning); }
+        .btn-history { border-left: 5px solid var(--success); } .btn-history i { color: var(--success); }
+
+        /* ANIMATED STATUS BADGES */
+        @keyframes pulse-orange {
+            0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
+        }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .status-wait { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; animation: pulse-orange 2s infinite; }
+        .status-process { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .status-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+        /* HISTORY ITEM */
+        .history-item { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .history-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        
+        .btn-mini { border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
+        .btn-pdf-user { background: #fee2e2; color: #991b1b; }
+        .btn-pdf-inv { background: #dbeafe; color: #1e40af; }
+
+        /* FORM STYLING */
+        .section-header { display: flex; align-items: center; gap: 10px; margin-top: 25px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--bg); }
+        .section-header i { color: var(--primary); }
+        .section-header span { font-weight: 700; color: #374151; font-size: 0.95rem; text-transform: uppercase; }
+        label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600; color: #4b5563; }
+        .form-control { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; background: #f9fafb; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        .row { display: flex; gap: 15px; } .col { flex: 1; }
+        .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+        .btn-back { width: 100%; padding: 12px; background: transparent; color: #6b7280; border: none; margin-top: 10px; cursor: pointer; font-size: 0.9rem; }
+        .hidden { display: none !important; }
+
+        /* FOOTER COPYRIGHT */
+        .app-footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            padding: 20px 0;
+            margin-top: 30px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-header">
+        <h1>Safety First</h1>
+        <p>Sistem Pelaporan Terpadu K3 & Lingkungan</p>
+    </div>
+
+    <div id="menu-page">
+        <div class="menu-grid">
+            <div class="menu-btn btn-danger" onclick="bukaForm('Kecelakaan Kerja')">
+                <i class="fas fa-user-injured"></i>
+                <div><h3>Kecelakaan Kerja</h3><p>Lapor insiden fisik / medis</p></div>
+            </div>
+            <div class="menu-btn btn-warning" onclick="bukaForm('Tumpahan B3')">
+                <i class="fas fa-biohazard"></i>
+                <div><h3>Tumpahan B3</h3><p>Lapor tumpahan bahan kimia</p></div>
+            </div>
+            <div class="menu-btn btn-history" onclick="bukaRiwayat()">
+                <i class="fas fa-history"></i>
+                <div><h3>Riwayat Pelaporan</h3><p>Cek Status & Unduh Dokumen</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="form-page" class="hidden">
+        <form id="laporanForm">
+            <input type="hidden" name="action" value="input">
+            <input type="hidden" name="jenis" id="inputJenis">
+            <input type="hidden" name="ruangan" id="inputRuangan">
+
+            <div class="card">
+                <h2 id="form-title" style="margin-top:0; text-align:center; color:var(--primary);">Form Laporan</h2>
+                
+                <div class="section-header"><i class="fas fa-user-circle"></i> <span>Data Pelapor</span></div>
+                <label>Nama Pelapor</label><input type="text" class="form-control" name="pelapor" required placeholder="Nama Lengkap Anda">
+                <label>No. WhatsApp (Aktif)</label><input type="number" class="form-control" name="wa" required placeholder="08xxxxxxxxxx">
+
+                <div class="section-header"><i class="fas fa-id-card"></i> <span>Data Pegawai / Korban</span></div>
+                <label>Nama Korban / Pegawai</label><input type="text" class="form-control" name="nama_pegawai">
+                <div class="row">
+                    <div class="col"><label>NIP</label><input type="text" class="form-control" name="nip"></div>
+                    <div class="col"><label>Status</label><select class="form-control" name="status_pegawai"><option value="PNS">PNS</option><option value="PPPK">PPPK</option><option value="Honorer">Honorer</option><option value="Outsourcing">Outsourcing</option></select></div>
+                </div>
+                <div class="row">
+                    <div class="col"><label>Umur (Thn)</label><input type="number" class="form-control" name="umur"></div>
+                    <div class="col"><label>Gender</label><select class="form-control" name="gender"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+                </div>
+                <label>Jabatan</label><input type="text" class="form-control" name="jabatan">
+
+                <div class="section-header"><i class="fas fa-exclamation-triangle"></i> <span>Rincian Kejadian</span></div>
+                <label>Waktu Kejadian</label><input type="datetime-local" class="form-control" name="waktu_kejadian" required>
+                <label>Lokasi Detail</label><input type="text" class="form-control" name="ruangan_korban" placeholder="Detail lokasi...">
+                <label>Kronologi Singkat</label><textarea class="form-control" name="deskripsi" rows="3" required placeholder="Jelaskan apa yang terjadi..."></textarea>
+                <label>Akibat / Cedera</label><textarea class="form-control" name="akibat" rows="2"></textarea>
+                <label>Saksi Mata</label><input type="text" class="form-control" name="saksi">
+
+                <div class="section-header"><i class="fas fa-first-aid"></i> <span>Penanganan</span></div>
+                <label>Tindakan Awal</label><textarea class="form-control" name="tindakan" rows="2"></textarea>
+                <label>Dilakukan Oleh</label><input type="text" class="form-control" name="tindakan_oleh">
+                <label>Grading Risiko</label><select class="form-control" name="grading"><option value="Biru">🔵 Biru (Ringan)</option><option value="Hijau">🟢 Hijau (Sedang)</option><option value="Kuning">🟡 Kuning (Berat)</option><option value="Merah">🔴 Merah (Ekstrem)</option></select>
+                
+                <div id="b3-field" class="hidden">
+                    <div class="section-header"><i class="fas fa-camera"></i> <span>Bukti Foto B3</span></div>
+                    <label>Link Google Drive / Foto</label><input type="text" class="form-control" name="doc_b3" placeholder="Paste link foto disini...">
+                </div>
+
+                <button type="button" class="btn-submit" onclick="kirimLaporan()"><i class="fas fa-paper-plane"></i> KIRIM LAPORAN</button>
+                <button type="button" class="btn-back" onclick="location.reload()">Batal</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="history-page" class="hidden">
+        <div class="card">
+            <h2 style="margin-top:0; text-align:center; color:var(--text); font-size:1.2rem;">Riwayat Pelaporan</h2>
+            <div id="history-loading" style="text-align:center; padding:20px; color:#6b7280;">
+                <i class="fas fa-spinner fa-spin"></i> Memuat data...
+            </div>
+            <div id="history-list"></div>
+            <button type="button" class="btn-back" onclick="kembaliKeMenu()">Kembali ke Menu</button>
+        </div>
+    </div>
+
+    <div class="app-footer">
+        &copy; 2026 Safety System <b>by K3KL</b>
+    </div>
+
+</div>
+
+<script>
+    // --- GANTI DENGAN URL APPS SCRIPT ANDA ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
+
+    let historyData = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const ruang = urlParams.get('ruang') || "Area Umum";
+    document.getElementById('inputRuangan').value = ruang;
+
+    function bukaForm(jenis) {
+        document.getElementById('menu-page').classList.add('hidden');
+        document.getElementById('history-page').classList.add('hidden');
+        document.getElementById('form-page').classList.remove('hidden');
+        document.getElementById('inputJenis').value = jenis;
+        document.getElementById('form-title').innerText = "Lapor " + jenis;
+        const b3Field = document.getElementById('b3-field');
+        if(jenis === "Tumpahan B3") b3Field.classList.remove('hidden'); else b3Field.classList.add('hidden');
+        window.scrollTo(0,0);
+    }
+
+    function kembaliKeMenu() {
+        document.getElementById('form-page').classList.add('hidden');
+        document.getElementById('history-page').classList.add('hidden');
+        document.getElementById('menu-page').classList.remove('hidden');
+    }
+
+    // --- LOGIKA RIWAYAT DENGAN ANIMASI ---
+    function bukaRiwayat() {
+        document.getElementById('menu-page').classList.add('hidden');
+        document.getElementById('history-page').classList.remove('hidden');
+        const list = document.getElementById('history-list');
+        const loading = document.getElementById('history-loading');
+        
+        list.innerHTML = '';
+        loading.style.display = 'block';
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            historyData = data;
+            loading.style.display = 'none';
+            data.reverse();
+
+            if(data.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#9ca3af;">Belum ada riwayat laporan.</div>';
+                return;
+            }
+
+            data.forEach((row, index) => {
+                
+                // ANIMASI BADGE
+                let statusBadge = '';
+                if(row.Status === 'Selesai') {
+                    statusBadge = `<span class="status-badge status-done"><i class="fas fa-check-circle"></i> SELESAI</span>`;
+                } else if (row.Status === 'Sedang Ditangani') {
+                    statusBadge = `<span class="status-badge status-process"><i class="fas fa-cog fa-spin"></i> PROSES</span>`;
+                } else {
+                    statusBadge = `<span class="status-badge status-wait"><i class="fas fa-clock"></i> MENUNGGU</span>`;
+                }
+
+                let actionButtons = '';
+                if(row.Status === 'Selesai') {
+                    actionButtons = `
+                        <div style="margin-top:10px; display:flex; gap:5px; flex-wrap:wrap;">
+                            <button onclick="downloadUserPDF(${index})" class="btn-mini btn-pdf-user"><i class="fas fa-file-pdf"></i> Laporan</button>
+                            <button onclick="downloadInvPDF(${index})" class="btn-mini btn-pdf-inv"><i class="fas fa-file-contract"></i> Investigasi</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtons = `<div style="font-size:0.75rem; color:#6b7280; margin-top:5px;"><i>Menunggu tindak lanjut admin...</i></div>`;
+                }
+
+                let item = `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span style="font-weight:bold; color:#374151;">${row.Jenis_Laporan}</span>
+                            ${statusBadge}
+                        </div>
+                        <div style="font-size:0.8rem; color:#6b7280;">
+                            <i class="far fa-clock"></i> ${new Date(row.Waktu_Lapor).toLocaleDateString()} | ${row.Ruangan}
+                        </div>
+                        <div style="font-size:0.85rem; color:#1f2937; margin-top:5px;">
+                            "${row.Deskripsi}"
+                        </div>
+                        ${actionButtons}
+                    </div>
+                `;
+                list.innerHTML += item;
+            });
+        })
+        .catch(err => {
+            loading.style.display = 'none';
+            list.innerHTML = '<div style="text-align:center; color:red;">Gagal memuat data.</div>';
+        });
+    }
+
+    // PDF 1
+    function downloadUserPDF(index) {
+        const data = historyData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(220, 38, 38); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("BUKTI LAPORAN INSIDEN", 105, 20, null, null, "center");
+        doc.setTextColor(0, 0, 0); doc.setFontSize(10); let safeID = data.Ticket_ID || 'ID-???'; doc.text(`ID Tiket: ${safeID}`, 15, 50);
+        const details = [["Jenis Laporan", data.Jenis_Laporan || "-"], ["Pelapor", data.Pelapor || "-"], ["Area", data.Ruangan || "-"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"]];
+        doc.autoTable({ startY: 60, body: details, theme: 'grid' });
+        let finalY = doc.lastAutoTable.finalY + 10; doc.text("Deskripsi:", 15, finalY); doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(data.Deskripsi || "-", 180), 15, finalY + 7);
+        doc.save(`Laporan_${safeID}.pdf`);
+    }
+
+    // PDF 2
+    function downloadInvPDF(index) {
+        const data = historyData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF(); let safeID = data.Ticket_ID || 'ID-???';
+        doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 40, 'F'); doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("BERITA ACARA INVESTIGASI", 105, 20, null, null, "center"); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("Dokumen Hasil Penanganan Admin", 105, 30, null, null, "center");
+        doc.setTextColor(0, 0, 0); doc.setFontSize(10); doc.text(`No. Dokumen: INV/${safeID}`, 15, 50);
+        const basicData = [["Status", "SELESAI (CLOSED)"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"], ["Jenis Insiden", data.Jenis_Laporan || "-"]];
+        doc.autoTable({ startY: 60, body: basicData, theme: 'plain' });
+        let yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("HASIL INVESTIGASI & PENANGANAN", 15, yPos);
+        const analysisData = [["Penyebab", data.Inv_Kondisi || "-"], ["Tindakan Perbaikan", data.Inv_Tindakan || "-"]];
+        doc.autoTable({ startY: yPos + 5, body: analysisData, theme: 'grid', headStyles: {fillColor: [220, 220, 220]} });
+        yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("Investigator:", 15, yPos); doc.setFont("helvetica", "normal"); doc.text(data.Inv_Petugas || "Admin K3", 15, yPos + 7);
+        doc.save(`Hasil_Investigasi_${safeID}.pdf`);
+    }
+
+    function kirimLaporan() {
+        const form = document.getElementById('laporanForm');
+        if(!form.checkValidity()) { Swal.fire({icon: 'warning', title: 'Data Belum Lengkap', text: 'Nama, WA, Waktu, dan Deskripsi wajib diisi.'}); return; }
+        Swal.fire({title: 'Sedang Mengirim...', didOpen: () => Swal.showLoading()});
+        const formData = new FormData(form);
+        fetch(SCRIPT_URL, { method: "POST", body: formData }).then(r => r.json()).then(data => {
+            if(data.result === 'success') { Swal.fire({icon: 'success', title: 'Berhasil', text: 'ID Tiket: ' + data.ticket}).then(() => location.reload()); } else { Swal.fire('Gagal', data.error, 'error'); }
+        });
+    }
+</script>
+
+</body>
+</html>

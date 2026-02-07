@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Executive Safety Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-body: #f3f4f6;
+            --sidebar-bg: #111827;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; display: flex; height: 100vh; color: var(--text-main); overflow: hidden; }
+
+        /* SIDEBAR */
+        .sidebar { width: 280px; background: var(--sidebar-bg); color: #e5e7eb; display: flex; flex-direction: column; transition: all 0.3s; z-index: 10; }
+        .brand { padding: 30px; font-size: 1.4rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #1f2937; }
+        .menu { padding: 20px; flex: 1; }
+        .menu-item { padding: 15px 20px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: #9ca3af; font-weight: 500; transition: all 0.2s ease; }
+        .menu-item:hover, .menu-item.active { background: #1f2937; color: white; transform: translateX(5px); }
+        .menu-item.active i { color: var(--primary); }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-body); }
+        .top-header { background: var(--card-bg); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .top-header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #111827; }
+        
+        .content-area { flex: 1; padding: 30px 40px; overflow-y: auto; }
+        .hidden { display: none !important; }
+
+        /* DASHBOARD STYLES */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; }
+        .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .bg-red { background: #fee2e2; color: #ef4444; } .bg-yellow { background: #fef3c7; color: #f59e0b; } .bg-green { background: #dcfce7; color: #10b981; }
+        .stat-info h3 { margin: 0; font-size: 1.8rem; font-weight: 700; }
+
+        .table-container { background: var(--card-bg); border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; border-bottom: 1px solid var(--border); }
+        th { text-align: left; padding: 18px 25px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        td { padding: 20px 25px; vertical-align: middle; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:hover { background: #f8fafc; }
+
+        /* QR CODE STYLES */
+        .qr-container { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); max-width: 800px; display: flex; gap: 30px; }
+        .qr-input-section { flex: 1; }
+        .qr-preview-section { flex: 1; border-left: 1px solid #e5e7eb; padding-left: 30px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        .input-modern { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #f9fafb; font-size: 0.95rem; margin-bottom: 15px; box-sizing: border-box;}
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        /* BADGES & BUTTONS */
+        .badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .badge-new { background: #fee2e2; color: #991b1b; } .badge-process { background: #fff7ed; color: #9a3412; } .badge-done { background: #f0fdf4; color: #166534; }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        
+        .action-group { display: flex; gap: 5px; }
+        
+        .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
+        .btn-process { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3); }
+        .btn-pdf { background: #fca5a5; color: #7f1d1d; } /* Merah Muda untuk Laporan Awal */
+        .btn-pdf:hover { background: #f87171; color: white; }
+        
+        .btn-inv { background: #1e3a8a; color: white; } /* Biru Tua untuk Investigasi */
+        .btn-inv:hover { background: #172554; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .btn-link { text-decoration: none; background: #e0f2fe; color: #0284c7; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block;}
+
+        /* SWAL & PRINT */
+        .swal-wide { width: 850px !important; border-radius: 16px !important; padding: 0 !important; overflow: hidden; }
+        @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; text-align: center; } }
+        
+        /* Form Popup Styles */
+        .ticket-header { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); padding: 25px; color: white; text-align: left; }
+        .form-container { padding: 25px; text-align: left; background: #fff; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+        
+        /* Animasi untuk investigasi form */
+        #investigation-block { display: none; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-shield-virus"></i> HSE Admin</div>
+        <div class="menu">
+            <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="fas fa-layer-group"></i> Dashboard Laporan</div>
+            <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i> Cetak QR Code</div>
+            <div class="menu-item"><i class="fas fa-users-cog"></i> Manajemen User</div>
+        </div>
+        <div style="padding: 20px; font-size: 0.8rem; color: #4b5563; text-align: center;">&copy; 2026 Safety System</div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <div>
+                <h2 id="page-title">Laporan Masuk</h2>
+                <p style="margin-top:5px; color:#6b7280;">Sistem Manajemen K3 & Lingkungan</p>
+            </div>
+            <button class="btn-primary" onclick="loadData()" style="width:auto;"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+        </div>
+
+        <div class="content-area">
+            
+            <div id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon bg-red"><i class="fas fa-exclamation-circle"></i></div><div class="stat-info"><h3 id="count-new">0</h3><p style="margin:0; color:#6b7280;">Laporan Baru</p></div></div>
+                    <div class="stat-card"><div class="stat-icon bg-yellow"><i class="fas fa-tools"></i></div><div class="stat-info"><h3 id="count-process">0</h3><p style="margin:0; color:#6b7280;">Sedang Ditangani</p></div></div>
+                    <div class="stat-card"><div class="stat-icon bg-green"><i class="fas fa-check-circle"></i></div><div class="stat-info"><h3 id="count-done">0</h3><p style="margin:0; color:#6b7280;">Selesai Ditangani</p></div></div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID & Waktu</th>
+                                <th>Detail Pelapor</th>
+                                <th>Insiden</th>
+                                <th>Status Laporan</th>
+                                <th width="220">Aksi & Dokumen</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="5" style="text-align:center; padding: 40px;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-qr" class="hidden">
+                <div class="qr-container">
+                    <div class="qr-input-section">
+                        <h3 style="margin-top:0; color:#1f2937;">Buat QR Code Lokasi</h3>
+                        <p style="color:#6b7280; font-size:0.9rem; margin-bottom:20px;">Masukkan nama ruangan. Print dan tempel QR ini di lokasi agar user bisa langsung lapor.</p>
+                        
+                        <label style="font-weight:bold; font-size:0.8rem; color:#4b5563;">NAMA RUANGAN / AREA</label>
+                        <input type="text" id="qrRuangan" class="input-modern" placeholder="Contoh: Gudang B3, Laboratorium Kimia">
+                        
+                        <button class="btn-primary" onclick="generateQR()">Generate QR Code</button>
+                    </div>
+                    
+                    <div class="qr-preview-section">
+                        <div id="print-area" style="display:none; text-align:center; padding:20px; border:2px solid #000; width:250px;">
+                            <h3 style="margin:0; font-size:16px; font-weight:bold; color:black;">SCAN UNTUK LAPOR</h3>
+                            <p style="margin:5px 0; font-size:12px; color:black;">Safety Reporting System</p>
+                            <img id="qrImage" src="" style="width:150px; height:150px; margin:10px 0;">
+                            <h2 id="qrText" style="margin:0; font-size:18px; font-weight:bold; color:black; text-transform:uppercase;">RUANGAN</h2>
+                        </div>
+                        <div id="qr-placeholder" style="color:#9ca3af;">
+                            <i class="fas fa-qrcode" style="font-size:3rem; margin-bottom:10px;"></i>
+                            <br>Preview akan muncul di sini
+                        </div>
+                        <button id="btnPrintQR" class="btn-primary" onclick="window.print()" style="margin-top:20px; display:none; background:#1f2937;">
+                            <i class="fas fa-print"></i> Cetak QR
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    // --- URL GOOGLE APPS SCRIPT ANDA ---
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
+    
+    // --- GANTI DENGAN LINK GITHUB PAGES ANDA ---
+    const WEB_PELAPOR_URL = "https://misbahudin123.github.io/kakadm.html"; 
+
+    let globalData = [];
+
+    document.addEventListener("DOMContentLoaded", () => { loadData(); });
+
+    // --- NAVIGASI HALAMAN ---
+    function showPage(pageId, btn) {
+        document.getElementById('page-dashboard').classList.add('hidden');
+        document.getElementById('page-qr').classList.add('hidden');
+        document.getElementById('page-' + pageId).classList.remove('hidden');
+
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+
+        const titles = { 'dashboard': 'Laporan Masuk', 'qr': 'Generator Barcode' };
+        document.getElementById('page-title').innerText = titles[pageId];
+    }
+
+    // --- LOAD DATA ---
+    function loadData() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#6b7280;"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Sedang menyinkronkan data...</td></tr>';
+
+        fetch(SCRIPT_URL)
+        .then(res => res.json())
+        .then(data => {
+            globalData = data;
+            tbody.innerHTML = '';
+            
+            let countNew = 0, countProcess = 0, countDone = 0;
+            data.sort((a,b) => (a.Status === 'Selesai' ? 2 : (a.Status === 'Menunggu' ? 0 : 1)) - (b.Status === 'Selesai' ? 2 : (b.Status === 'Menunggu' ? 0 : 1)));
+
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px;">Tidak ada data laporan.</td></tr>';
+                return;
+            }
+
+            data.forEach((row, index) => {
+                if(row.Status === 'Menunggu') countNew++; else if(row.Status === 'Selesai') countDone++; else countProcess++;
+
+                let safeID = row.Ticket_ID || row.ID_Laporan || row.id || 'ID-ERROR';
+                let displayDate = '-';
+                if(row.Waktu_Lapor) {
+                    let d = new Date(row.Waktu_Lapor);
+                    if(!isNaN(d.getTime())) displayDate = d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID').slice(0,5);
+                }
+
+                let badgeClass = row.Status === 'Menunggu' ? 'badge-new' : (row.Status === 'Selesai' ? 'badge-done' : 'badge-process');
+                let icon = row.Status === 'Menunggu' ? 'fa-exclamation' : (row.Status === 'Selesai' ? 'fa-check' : 'fa-clock');
+                let statusBadge = `<span class="badge ${badgeClass}"><span class="badge-dot"></span> <i class="fas ${icon}" style="margin-left:4px;"></i> ${row.Status || 'Menunggu'}</span>`;
+
+                let docLink = (row.Doc_B3 && row.Doc_B3.length > 5) ? `<a href="${row.Doc_B3}" target="_blank" class="btn-link" title="Lihat Bukti"><i class="fas fa-image"></i></a>` : '';
+                
+                // --- TOMBOL AKSI LOGIC ---
+                let actionBtn;
+                let invPdfBtn = ''; // Tombol PDF Investigasi Default Kosong
+
+                if(row.Status === 'Selesai') {
+                    // Jika Selesai: Tampilkan Tombol Closed & Tombol PDF Investigasi
+                    actionBtn = `<button class="btn-action" style="background:#f3f4f6; color:#9ca3af; cursor:default;"><i class="fas fa-lock"></i> Closed</button>`;
+                    invPdfBtn = `<button class="btn-action btn-inv" onclick="generateInvestigationPDF(${index})" title="Cetak Dokumen Investigasi"><i class="fas fa-file-contract"></i> Inv</button>`;
+                } else {
+                    // Jika Belum Selesai: Tombol Tindak Lanjut
+                    actionBtn = `<button class="btn-action btn-process" onclick="prosesLaporan('${safeID}', '${row.Pelapor || 'Anonim'}')"><i class="fas fa-bolt"></i> Tindak</button>`;
+                }
+
+                let tr = `
+                    <tr>
+                        <td><strong style="color:var(--text-main);">${safeID}</strong><br><span style="font-size:0.85rem; color:var(--text-muted);">${displayDate}</span></td>
+                        <td><div style="font-weight:600;">${row.Pelapor || 'Anonim'}</div><div style="font-size:0.85rem; color:var(--text-muted);"><i class="fab fa-whatsapp"></i> ${row.No_WA || '-'}</div><div style="font-size:0.8rem; color:var(--text-muted);">Area: ${row.Ruangan || '-'}</div></td>
+                        <td><div style="color:var(--primary); font-weight:600; margin-bottom:4px;">${row.Jenis_Laporan || 'Umum'}</div><div style="font-size:0.9rem; color:#4b5563; max-width:300px; line-height:1.4;">${row.Deskripsi || '-'}</div></td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <div class="action-group">
+                                ${actionBtn}
+                                <button class="btn-action btn-pdf" onclick="generatePDF(${index})" title="Cetak Laporan Pelapor"><i class="fas fa-file-pdf"></i> Lap</button>
+                                ${invPdfBtn} ${docLink}
+                            </div>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += tr;
+            });
+
+            document.getElementById('count-new').innerText = countNew;
+            document.getElementById('count-process').innerText = countProcess;
+            document.getElementById('count-done').innerText = countDone;
+        })
+        .catch(err => { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data. Cek Console Log.</td></tr>'; });
+    }
+
+    // --- FUNGSI TINDAK LANJUT (POPUP DENGAN LOGIKA HIDE/SHOW) ---
+    function prosesLaporan(ticketId, namaPelapor) {
+        Swal.fire({
+            customClass: 'swal-wide',
+            html: `
+                <div class="ticket-header">
+                    <h4><i class="fas fa-ticket-alt"></i> TICKET #${ticketId}</h4>
+                    <p>PELAPOR: ${namaPelapor.toUpperCase()}</p>
+                </div>
+                <div class="form-container">
+                    <div class="form-grid">
+                        <div class="full-width">
+                            <label style="font-size:0.8rem; font-weight:bold;">Status Laporan</label>
+                            <select id="inv-status" class="input-modern">
+                                <option value="Sedang Ditangani">⏳ Sedang Ditangani</option>
+                                <option value="Selesai">✅ Selesai (Tutup Kasus)</option>
+                            </select>
+                        </div>
+                        <div class="full-width">
+                            <label style="font-size:0.8rem; font-weight:bold;">Catatan Admin (Untuk User)</label>
+                            <input id="inv-note" class="input-modern" placeholder="Update progres terbaru...">
+                        </div>
+                    </div>
+
+                    <div id="investigation-block">
+                        <hr style="border:0; border-top:1px dashed #ddd; margin:15px 0;">
+                        <h5 style="color:#4f46e5; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-file-contract"></i> INVESTIGASI INTERNAL (Wajib Diisi)
+                        </h5>
+                        <div class="form-grid">
+                            <input id="inv_kondisi" class="input-modern" placeholder="Kondisi Penyebab">
+                            <input id="inv_sumber" class="input-modern" placeholder="Sumber Penyebab">
+                            <textarea id="inv_tindakan" class="input-modern full-width" rows="2" placeholder="Tindakan Perbaikan (Wajib jika Selesai)"></textarea>
+                            <textarea id="inv_uraian" class="input-modern full-width" rows="2" placeholder="Uraian Lengkap Kejadian"></textarea>
+                            <input id="inv_type" class="input-modern" placeholder="Tipe Insiden">
+                            <input id="inv_cedera" class="input-modern" placeholder="Jenis Cedera">
+                            <input id="inv_petugas" class="input-modern" placeholder="Petugas Investigasi">
+                            <input id="inv_nama_ka" class="input-modern" placeholder="Validasi Ka. Unit">
+                        </div>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'SIMPAN',
+            confirmButtonColor: '#4f46e5',
+            width: 800,
+            didOpen: () => {
+                const statusSelect = document.getElementById('inv-status');
+                const invBlock = document.getElementById('investigation-block');
+                function toggleInv() {
+                    invBlock.style.display = (statusSelect.value === 'Selesai') ? 'block' : 'none';
+                }
+                toggleInv(); statusSelect.addEventListener('change', toggleInv);
+            },
+            preConfirm: () => {
+                const status = document.getElementById('inv-status').value;
+                const note = document.getElementById('inv-note').value;
+                if(status === 'Selesai' && !document.getElementById('inv_tindakan').value) {
+                    Swal.showValidationMessage('Tindakan Perbaikan WAJIB diisi jika Status Selesai!'); return;
+                }
+                const formData = new FormData();
+                formData.append('action', 'update');
+                formData.append('id_tiket', ticketId);
+                formData.append('status', status);
+                formData.append('note', note);
+                ['inv_kondisi', 'inv_tindakan', 'inv_uraian', 'inv_sumber', 'inv_type', 'inv_cedera', 'inv_petugas', 'inv_nama_ka'].forEach(id => formData.append(id, document.getElementById(id).value));
+                return fetch(SCRIPT_URL, {method: 'POST', body: formData}).then(r => r.json());
+            }
+        }).then((result) => {
+            if (result.isConfirmed) { Swal.fire('Sukses', 'Data tersimpan', 'success'); loadData(); }
+        });
+    }
+
+    // --- PDF 1: LAPORAN PELAPOR ---
+    function generatePDF(index) {
+        const data = globalData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(220, 38, 38); doc.rect(0, 0, 210, 40, 'F'); // Header Merah
+        doc.setTextColor(255, 255, 255); doc.setFontSize(20); doc.setFont("helvetica", "bold"); doc.text("LAPORAN INSIDEN AWAL", 105, 20, null, null, "center");
+        doc.setTextColor(0, 0, 0); doc.setFontSize(11); 
+        let safeID = data.Ticket_ID || data.ID_Laporan || data.id || 'ID-ERROR';
+        doc.text(`ID Tiket: ${safeID}`, 15, 50); 
+        
+        const details = [["Jenis Insiden", data.Jenis_Laporan || "-"], ["Nama Pelapor", data.Pelapor || "-"], ["Kontak", data.No_WA || "-"], ["Lokasi", data.Ruangan || "-"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"]];
+        doc.autoTable({ startY: 60, head: [['Parameter', 'Detail']], body: details, theme: 'grid' });
+        
+        let finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFont("helvetica", "bold"); doc.text("Deskripsi Kejadian:", 15, finalY);
+        doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(data.Deskripsi || "-", 180), 15, finalY + 7);
+        
+        doc.save(`Laporan_Awal_${safeID}.pdf`);
+    }
+
+    // --- PDF 2: BERITA ACARA INVESTIGASI (BARU) ---
+    function generateInvestigationPDF(index) {
+        const data = globalData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        let safeID = data.Ticket_ID || data.ID_Laporan || data.id || 'ID-ERROR';
+
+        // Header Biru Resmi
+        doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 40, 'F'); 
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); 
+        doc.text("BERITA ACARA INVESTIGASI INSIDEN", 105, 20, null, null, "center");
+        doc.setFontSize(10); doc.setFont("helvetica", "normal"); 
+        doc.text("Dokumen Rahasia Internal Perusahaan", 105, 30, null, null, "center");
+
+        doc.setTextColor(0, 0, 0); doc.setFontSize(10);
+        doc.text(`No. Dokumen: INV/${safeID}`, 15, 50);
+        doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')}`, 150, 50);
+
+        // Tabel Data Insiden Dasar
+        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("I. DATA INSIDEN", 15, 60);
+        const basicData = [
+            ["Lokasi Kejadian", data.Ruangan || "-"],
+            ["Waktu Kejadian", data.Waktu_Kejadian || "-"],
+            ["Jenis Insiden", data.Jenis_Laporan || "-"],
+            ["Tipe Cedera", data.Inv_Cedera || "-"]
+        ];
+        doc.autoTable({ startY: 65, body: basicData, theme: 'plain', styles: {fontSize: 10} });
+
+        // Tabel Hasil Analisa
+        let yPos = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("II. HASIL ANALISA PENYEBAB", 15, yPos);
+        const analysisData = [
+            ["Kondisi Penyebab (Unsafe Condition)", data.Inv_Kondisi || "-"],
+            ["Sumber Penyebab (Source)", data.Inv_Sumber || "-"],
+            ["Tipe Insiden", data.Inv_Type || "-"]
+        ];
+        doc.autoTable({ startY: yPos + 5, head: [['Parameter', 'Hasil Analisa']], body: analysisData, theme: 'grid', headStyles: {fillColor: [220, 220, 220], textColor: 0} });
+
+        // Uraian & Tindakan (Block Text)
+        yPos = doc.lastAutoTable.finalY + 10;
+        doc.text("III. URAIAN KRONOLOGI LENGKAP", 15, yPos);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+        const uraianLines = doc.splitTextToSize(data.Inv_Uraian || "Tidak ada uraian.", 180);
+        doc.text(uraianLines, 15, yPos + 7);
+
+        yPos += 10 + (uraianLines.length * 5);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+        doc.text("IV. TINDAKAN PERBAIKAN (CORRECTIVE ACTION)", 15, yPos);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+        const actionLines = doc.splitTextToSize(data.Inv_Tindakan || "Tidak ada tindakan tercatat.", 180);
+        doc.text(actionLines, 15, yPos + 7);
+
+        // Tanda Tangan
+        yPos += 20 + (actionLines.length * 5);
+        if(yPos > 250) { doc.addPage(); yPos = 40; } // Pindah halaman jika penuh
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Dibuat Oleh (Investigator),", 30, yPos);
+        doc.text("Disetujui Oleh (Ka. Unit),", 130, yPos);
+        
+        yPos += 25;
+        doc.text(`( ${data.Inv_Petugas || "...................."} )`, 30, yPos);
+        doc.text(`( ${data.Inv_Nama_Ka || "...................."} )`, 130, yPos);
+
+        doc.save(`Investigasi_${safeID}.pdf`);
+    }
+
+    // Generator QR (Sama)
+    function generateQR() {
+        const ruangan = document.getElementById('qrRuangan').value;
+        if(!ruangan) { Swal.fire('Error', 'Isi nama ruangan dulu!', 'warning'); return; }
+        const finalLink = `${WEB_PELAPOR_URL}?ruang=${encodeURIComponent(ruangan)}`;
+        const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${finalLink}`;
+        document.getElementById('qrImage').src = qrApi; document.getElementById('qrText').innerText = ruangan.toUpperCase();
+        document.getElementById('print-area').style.display = 'block'; document.getElementById('qr-placeholder').style.display = 'none'; document.getElementById('btnPrintQR').style.display = 'inline-block';
+    }
+</script>
+</body>
+</html>
