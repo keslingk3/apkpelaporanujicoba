@@ -345,6 +345,7 @@
 
     // --- PDF 1: LAPORAN PELAPOR ---
     // --- FUNGSI GENERATE PDF (VERSI FORMULIR RESMI RSJ) ---
+    // --- REVISI: PDF LAPORAN PELAPOR (DENGAN HARI OTOMATIS) ---
     function generatePDF(index) {
         const data = globalData[index];
         const { jsPDF } = window.jspdf;
@@ -366,19 +367,21 @@
         const startX = 25;
         const colVal = 70;
         
-        // Helper function biar rapi
+        // Helper function
         const rowData = (label, val) => {
             doc.text(label, startX, y);
             doc.text(":", colVal, y);
-            doc.text(String(val || "-"), colVal + 2, y);
+            // Cek jika val kosong, beri tanda strip
+            doc.text(String(val && val !== "undefined" ? val : "-"), colVal + 2, y);
             y += 6;
         };
 
-        // Mapping Data (Sesuai Form)
+        // Mapping Data
         rowData("Nama", data.Nama_Pegawai || data.Pelapor);
         rowData("Unit Kerja/Ruangan", data.Ruangan);
         rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); // Pastikan field TTL ada di Sheet jika ingin muncul
+        // Pastikan kolom 'TTL' ada di Spreadsheet agar data ini muncul
+        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); 
         rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
         rowData("Jabatan", data.Jabatan);
 
@@ -390,12 +393,27 @@
         y += 8;
         doc.setFont("helvetica", "normal");
 
-        // 1. Tanggal Waktu
+        // 1. Tanggal Waktu (DENGAN LOGIKA HARI OTOMATIS)
         doc.text("1. Tanggal dan waktu kecelakaan kerja:", startX, y);
         y += 6;
-        let tglStr = data.Waktu_Kejadian ? new Date(data.Waktu_Kejadian).toLocaleDateString('id-ID') : "..................";
-        let jamStr = data.Waktu_Kejadian ? new Date(data.Waktu_Kejadian).toLocaleTimeString('id-ID') : "..........";
-        doc.text(`    Hari: ...............   Tanggal: ${tglStr}   Jam: ${jamStr} WIB`, startX, y);
+        
+        // Deteksi Hari & Tanggal
+        let hariStr = "..................";
+        let tglStr = "..................";
+        let jamStr = "..........";
+
+        if(data.Waktu_Kejadian) {
+            let dateObj = new Date(data.Waktu_Kejadian);
+            if(!isNaN(dateObj)) {
+                let days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                hariStr = days[dateObj.getDay()]; // Ambil nama hari
+                tglStr = dateObj.toLocaleDateString('id-ID');
+                // Format jam HH:MM WIB
+                jamStr = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}).replace('.', ':');
+            }
+        }
+
+        doc.text(`    Hari: ${hariStr}      Tanggal: ${tglStr}      Jam: ${jamStr} WIB`, startX, y);
         y += 8;
 
         // 2. Kecelakaan Kerja
@@ -407,12 +425,11 @@
         // 3. Kronologis
         doc.text("3. Kronologis Kejadian:", startX, y);
         y += 6;
-        // Text wrapping agar tidak bablas ke kanan
         const splitDeskripsi = doc.splitTextToSize(data.Deskripsi || "-", 160);
         doc.text(splitDeskripsi, startX + 5, y);
         y += (splitDeskripsi.length * 5) + 4;
 
-        // 4. Jenis Kecelakaan (Simulasi Checkbox text)
+        // 4. Jenis Kecelakaan
         doc.text("4. Jenis Kecelakaan Kerja (Sesuai laporan):", startX, y);
         y += 6;
         doc.text("    [ v ] " + (data.Jenis_Detail || data.Jenis_Laporan || "Lain-lain"), startX, y);
@@ -430,7 +447,7 @@
         doc.text("    Lokasi: " + (data.Ruangan_Korban || data.Ruangan || "-"), startX + 5, y);
         y += 8;
 
-        // Cek jika halaman penuh, tambah halaman baru
+        // Cek halaman
         if(y > 250) { doc.addPage(); y = 20; }
 
         // 10. Akibat
@@ -454,21 +471,18 @@
         y += 15;
 
         // --- 4. TABEL TANDA TANGAN ---
-        // Cek halaman lagi
         if(y > 230) { doc.addPage(); y = 20; }
         
         const boxW = 80;
         const boxH = 40;
         
-        // Header Tabel
-        doc.rect(25, y, boxW, 8); // Kiri
-        doc.rect(25 + boxW, y, boxW, 8); // Kanan
+        doc.rect(25, y, boxW, 8); 
+        doc.rect(25 + boxW, y, boxW, 8); 
         doc.setFont("helvetica", "bold");
         doc.text("Pembuat Laporan", 25 + (boxW/2), y+5, null, null, "center");
         doc.text("Penerima Laporan", 25 + boxW + (boxW/2), y+5, null, null, "center");
         
         y += 8;
-        // Isi Tabel
         doc.rect(25, y, boxW, boxH);
         doc.rect(25 + boxW, y, boxW, boxH);
         
@@ -477,18 +491,15 @@
         doc.text("Paraf:", 27, y+5);
         doc.text("Paraf:", 27 + boxW, y+5);
         
-        // Tanda Tangan Nama
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
         doc.text(`( ${data.Pelapor} )`, 25 + (boxW/2), y + boxH - 10, null, null, "center");
         doc.text("( ........................... )", 25 + boxW + (boxW/2), y + boxH - 10, null, null, "center");
 
-        // Tanggal di bawah
         doc.setFont("helvetica", "normal");
         doc.setFontSize(9);
-        let tglLapor = new Date(data.Waktu_Lapor).toLocaleDateString('id-ID');
-        doc.text(`Tanggal Terima: ${tglLapor}`, 27, y + boxH - 3);
-        doc.text("Tanggal Lapor: .....................", 27 + boxW, y + boxH - 3);
+        doc.text(`Tanggal: ${tglStr}`, 27, y + boxH - 3);
+        doc.text("Tanggal: .....................", 27 + boxW, y + boxH - 3);
         
         y += boxH + 10;
 
@@ -499,14 +510,10 @@
         
         const grades = ["Biru", "Hijau", "Kuning", "Merah"];
         let xBox = 25;
-        
         grades.forEach(g => {
-            doc.rect(xBox, y-4, 4, 4); // Kotak
-            // Cek jika grading sesuai data
+            doc.rect(xBox, y-4, 4, 4);
             if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) {
-                doc.setFont("helvetica", "bold");
-                doc.text("X", xBox + 0.5, y-0.5);
-                doc.setFont("helvetica", "normal");
+                doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal");
             }
             doc.text(g, xBox + 6, y);
             xBox += 35;
@@ -515,7 +522,8 @@
         doc.setFontSize(8);
         doc.text("NB* = pilih salah satu jawaban", 25, y+10);
 
-        doc.save(`Laporan_RSJ_${data.Ticket_ID || 'Doc'}.pdf`);
+        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
+        doc.save(`Laporan_RSJ_${safeID}.pdf`);
     }
 
     // --- PDF 2: BERITA ACARA INVESTIGASI (BARU) ---
@@ -596,4 +604,5 @@
 </body>
 
 </html>
+
 
