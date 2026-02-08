@@ -544,17 +544,115 @@
         doc.save(`Laporan_RSJ_${safeID}.pdf`);
     }
     // PDF 2
+// --- PDF 2: BERITA ACARA INVESTIGASI (FORMAT TELAAH RSJ - SAMA DENGAN ADMIN) ---
     function downloadInvPDF(index) {
-        const data = historyData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF(); let safeID = data.Ticket_ID || 'ID-???';
-        doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 40, 'F'); doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("BERITA ACARA INVESTIGASI", 105, 20, null, null, "center"); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("Dokumen Hasil Penanganan Admin", 105, 30, null, null, "center");
-        doc.setTextColor(0, 0, 0); doc.setFontSize(10); doc.text(`No. Dokumen: INV/${safeID}`, 15, 50);
-        const basicData = [["Status", "SELESAI (CLOSED)"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"], ["Jenis Insiden", data.Jenis_Laporan || "-"]];
-        doc.autoTable({ startY: 60, body: basicData, theme: 'plain' });
-        let yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("HASIL INVESTIGASI & PENANGANAN", 15, yPos);
-        const analysisData = [["Penyebab", data.Inv_Kondisi || "-"], ["Tindakan Perbaikan", data.Inv_Tindakan || "-"]];
-        doc.autoTable({ startY: yPos + 5, body: analysisData, theme: 'grid', headStyles: {fillColor: [220, 220, 220]} });
-        yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("Investigator:", 15, yPos); doc.setFont("helvetica", "normal"); doc.text(data.Inv_Petugas || "Admin K3", 15, yPos + 7);
-        doc.save(`Hasil_Investigasi_${safeID}.pdf`);
+        const data = historyData[index]; // Menggunakan historyData
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // --- 1. HEADER (KOP) ---
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center");
+        doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center");
+        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
+
+        // --- 2. BAGIAN I: DATA PEGAWAI ---
+        let y = 50;
+        doc.setFontSize(10);
+        doc.text("I.    DATA PEGAWAI", 20, y);
+        y += 8;
+
+        doc.setFont("helvetica", "normal");
+        const startX = 25;
+        const colVal = 70;
+
+        const rowData = (label, val) => {
+            doc.text(label, startX, y);
+            doc.text(":", colVal, y);
+            doc.text(String(val || "-"), colVal + 2, y);
+            y += 6;
+        };
+
+        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
+        rowData("Unit Kerja/Ruangan", data.Ruangan);
+        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
+        rowData("Tempat, Tanggal Lahir", data.TTL || "-");
+        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
+        
+        doc.text("Jabatan", startX, y);
+        doc.text(":", colVal, y);
+        const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120);
+        doc.text(jabatanText, colVal + 2, y);
+        y += 6;
+        
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y);
+        y += 10;
+
+        // --- 3. BAGIAN II: TINDAK LANJUT ---
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y);
+        y += 6;
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "italic");
+        doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y);
+        y += 10;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+
+        let contentText = "";
+        if (data.Inv_Uraian) contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Uraian + "\n\n";
+        if (data.Inv_Tindakan) contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Tindakan;
+        
+        if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
+
+        const splitContent = doc.splitTextToSize(contentText, 160);
+        doc.text(splitContent, 25, y);
+        
+        if (!data.Inv_Uraian && !data.Inv_Tindakan) {
+             for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); }
+        } else {
+             y += (splitContent.length * 5) + 10;
+        }
+
+        // --- 4. TANDA TANGAN ---
+        if (y > 230) { doc.addPage(); y = 40; } 
+        else { y += 15; }
+
+        const leftX = 55;
+        const rightX = 155;
+
+        // Tanggal Cetak
+        let tglCetak = new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
+        doc.setFont("helvetica", "normal");
+        doc.text(`Bogor, ${tglCetak}`, rightX, y, null, null, "center");
+        
+        y += 6;
+        doc.text("Mengetahui,", leftX, y, null, null, "center");
+        doc.text("Pembuat Laporan", rightX, y, null, null, "center");
+        
+        y += 6;
+        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center");
+        doc.text("Investigator / Admin", rightX, y, null, null, "center");
+
+        y += 25; 
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
+        doc.text(`( ${data.Inv_Petugas || "Admin K3"} )`, rightX, y, null, null, "center");
+
+        y += 5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.text("NIP. ...........................", leftX, y, null, null, "center");
+
+        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
+        doc.save(`Laporan_Telaah_${safeID}.pdf`);
     }
 
     function kirimLaporan() {
@@ -570,4 +668,5 @@
 
 </body>
 </html>
+
 
