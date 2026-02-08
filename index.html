@@ -152,7 +152,15 @@
                 <label>No. WhatsApp (Aktif)</label><input type="number" class="form-control" name="wa" required placeholder="08xxxxxxxxxx">
 
                 <div class="section-header"><i class="fas fa-id-card"></i> <span>Data Pegawai / Korban</span></div>
-                <label>Nama Korban / Pegawai</label><input type="text" class="form-control" name="nama_pegawai">
+                
+                <label>Nama Korban / Pegawai</label>
+                <input type="text" class="form-control" name="nama_pegawai">
+                
+                <div class="row">
+                    <div class="col"><label>Unit Kerja/Ruangan</label><input type="text" class="form-control" name="unit_kerja"></div>
+                    <div class="col"><label>Tempat, Tgl Lahir</label><input type="text" class="form-control" name="ttl" placeholder="Bogor, 01-01-1990"></div>
+                </div>
+
                 <div class="row">
                     <div class="col"><label>NIP</label><input type="text" class="form-control" name="nip"></div>
                     <div class="col"><label>Status</label><select class="form-control" name="status_pegawai"><option value="PNS">PNS</option><option value="PPPK">PPPK</option><option value="Honorer">Honorer</option><option value="Outsourcing">Outsourcing</option></select></div>
@@ -164,15 +172,51 @@
                 <label>Jabatan</label><input type="text" class="form-control" name="jabatan">
 
                 <div class="section-header"><i class="fas fa-exclamation-triangle"></i> <span>Rincian Kejadian</span></div>
-                <label>Waktu Kejadian</label><input type="datetime-local" class="form-control" name="waktu_kejadian" required>
-                <label>Lokasi Detail</label><input type="text" class="form-control" name="ruangan_korban" placeholder="Detail lokasi...">
-                <label>Kronologi Singkat</label><textarea class="form-control" name="deskripsi" rows="3" required placeholder="Jelaskan apa yang terjadi..."></textarea>
-                <label>Akibat / Cedera</label><textarea class="form-control" name="akibat" rows="2"></textarea>
-                <label>Saksi Mata</label><input type="text" class="form-control" name="saksi">
+                
+                <label>Waktu Kejadian</label>
+                <input type="datetime-local" class="form-control" name="waktu_kejadian" required>
+                
+                <label>Lokasi Detail (Titik Spesifik)</label>
+                <input type="text" class="form-control" name="ruangan_korban" placeholder="Contoh: Kamar Mandi Pasien...">
+                
+                <label>Kronologi Singkat</label>
+                <textarea class="form-control" name="deskripsi" rows="3" required placeholder="Jelaskan kronologi kejadian..."></textarea>
+                
+                <label>Jenis Kecelakaan Kerja</label>
+                <select class="form-control" name="jenis_insiden_k3">
+                    <option value="" disabled selected>-- Pilih Jenis --</option>
+                    <option value="KNC">KNC / Kejadian Nyaris Cedera (Near Miss)</option>
+                    <option value="KTC">KTC / Kejadian Tidak Cedera (Non-Harm)</option>
+                    <option value="KTD">KTD / Kejadian Tidak Diharapkan (Sentinel)</option>
+                </select>
+
+                <label>Akibat / Cedera</label>
+                <textarea class="form-control" name="akibat" rows="2"></textarea>
+                
+                <label>Saksi Mata</label>
+                <input type="text" class="form-control" name="saksi">
+
+                <label>Kecelakaan kerja terjadi pada?</label>
+                <select class="form-control" name="terjadi_pada">
+                    <option value="Pasien">Pasien</option>
+                    <option value="Karyawan">Karyawan / Pegawai</option>
+                    <option value="Pengunjung">Pengunjung / Keluarga</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+
+                <label>Tempat Kejadian Kecelakaan</label>
+                <input type="text" class="form-control" name="tempat_kejadian" placeholder="Nama Unit / Area...">
 
                 <div class="section-header"><i class="fas fa-first-aid"></i> <span>Penanganan</span></div>
                 <label>Tindakan Awal</label><textarea class="form-control" name="tindakan" rows="2"></textarea>
                 <label>Dilakukan Oleh</label><input type="text" class="form-control" name="tindakan_oleh">
+                
+                <label>Apakah kejadian yang sama pernah terjadi di unit kerja lain?</label>
+                <select class="form-control" name="kejadian_berulang">
+                    <option value="Ya">Ya</option>
+                    <option value="Tidak">Tidak</option>
+                </select>
+
                 <label>Grading Risiko</label><select class="form-control" name="grading"><option value="Biru">🔵 Biru (Ringan)</option><option value="Hijau">🟢 Hijau (Sedang)</option><option value="Kuning">🟡 Kuning (Berat)</option><option value="Merah">🔴 Merah (Ekstrem)</option></select>
                 
                 <div id="b3-field" class="hidden">
@@ -240,7 +284,7 @@
     function bukaRiwayat() {
         document.getElementById('menu-page').classList.add('hidden');
         document.getElementById('history-page').classList.remove('hidden');
-        document.getElementById('history-location-title').innerText = ruang; // Judul lokasi di riwayat
+        document.getElementById('history-location-title').innerText = ruang; 
         
         const list = document.getElementById('history-list');
         const loading = document.getElementById('history-loading');
@@ -251,13 +295,11 @@
         fetch(SCRIPT_URL)
         .then(res => res.json())
         .then(data => {
-            // === BAGIAN FILTERING PENTING ===
-            // Hanya ambil data yang 'Ruangan'-nya sama dengan 'ruang' dari QR Code
             const filteredData = data.filter(row => row.Ruangan === ruang);
             
-            historyData = filteredData; // Simpan data yang sudah difilter
+            historyData = filteredData; 
             loading.style.display = 'none';
-            filteredData.reverse(); // Urutkan terbaru
+            filteredData.reverse(); 
 
             if(filteredData.length === 0) {
                 list.innerHTML = `<div style="text-align:center; color:#9ca3af; padding:20px;">
@@ -268,8 +310,6 @@
             }
 
             filteredData.forEach((row, index) => {
-                
-                // ANIMASI BADGE
                 let statusBadge = '';
                 if(row.Status === 'Selesai') {
                     statusBadge = `<span class="status-badge status-done"><i class="fas fa-check-circle"></i> SELESAI</span>`;
@@ -316,289 +356,29 @@
     }
 
     // PDF 1
-    // --- PDF 1: LAPORAN PELAPOR (FORMAT RESMI RSJ - SAMA DENGAN ADMIN) ---
     function downloadUserPDF(index) {
-        // Ambil data dari historyData (Bukan globalData)
-        const data = historyData[index];
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        
-        // --- 1. KOP JUDUL ---
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text("LAPORAN PAK / KECELAKAAN KERJA PETUGAS", 105, 20, null, null, "center");
-        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 26, null, null, "center");
-        
-        // --- 2. BAGIAN I: DATA PEGAWAI ---
-        let y = 40;
-        doc.setFontSize(10);
-        doc.text("I.    DATA PEGAWAI", 20, y);
-        y += 8;
-        
-        doc.setFont("helvetica", "normal");
-        const startX = 25;
-        const colVal = 70;
-        
-        const rowData = (label, val) => {
-            doc.text(label, startX, y);
-            doc.text(":", colVal, y);
-            doc.text(String(val && val !== "undefined" ? val : "-"), colVal + 2, y);
-            y += 6;
-        };
-
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
-        rowData("Unit Kerja/Ruangan", data.Ruangan);
-        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); 
-        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
-        rowData("Jabatan", data.Jabatan);
-
-        y += 5;
-
-        // --- 3. BAGIAN II: RINCIAN KEJADIAN ---
-        doc.setFont("helvetica", "bold");
-        doc.text("II.   RINCIAN KEJADIAN", 20, y);
-        y += 8;
-        doc.setFont("helvetica", "normal");
-
-        // 1. Tanggal Waktu
-        doc.text("1. Tanggal dan waktu kecelakaan kerja:", startX, y);
-        y += 6;
-        let hariStr = "..................";
-        let tglStr = "..................";
-        let jamStr = "..........";
-
-        if(data.Waktu_Kejadian) {
-            let dateObj = new Date(data.Waktu_Kejadian);
-            if(!isNaN(dateObj)) {
-                let days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                hariStr = days[dateObj.getDay()];
-                tglStr = dateObj.toLocaleDateString('id-ID');
-                jamStr = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}).replace('.', ':');
-            }
-        }
-        doc.text(`    Hari: ${hariStr}      Tanggal: ${tglStr}      Jam: ${jamStr} WIB`, startX, y);
-        y += 8;
-
-        // 2. Kecelakaan Kerja
-        doc.text("2. Kecelakaan Kerja:", startX, y);
-        y += 6;
-        doc.text("    " + (data.Jenis_Laporan || "-"), startX, y);
-        y += 8;
-
-        // 3. Kronologis
-        doc.text("3. Kronologis Kejadian:", startX, y);
-        y += 6;
-        const splitDeskripsi = doc.splitTextToSize(data.Deskripsi || "-", 160);
-        doc.text(splitDeskripsi, startX + 5, y);
-        y += (splitDeskripsi.length * 5) + 4;
-
-        // 4. Jenis Kecelakaan
-        doc.text("4. Jenis Kecelakaan Kerja (Sesuai laporan):", startX, y);
-        y += 6;
-        doc.text("    [ v ] " + (data.Jenis_Detail || data.Jenis_Laporan || "Lain-lain"), startX, y);
-        y += 8;
-
-        // 5. Orang Pertama
-        doc.text("5. Orang Pertama yang melaporkan kejadian:", startX, y);
-        y += 6;
-        doc.text("    Nama: " + (data.Pelapor || "-"), startX + 5, y);
-        y += 8;
-
-        // 7. Tempat Kejadian
-        doc.text("7. Tempat Kejadian Kecelakaan Kerja:", startX, y);
-        y += 6;
-        doc.text("    Lokasi: " + (data.Ruangan_Korban || data.Ruangan || "-"), startX + 5, y);
-        y += 8;
-
-        if(y > 250) { doc.addPage(); y = 20; }
-
-        // 10. Akibat
-        doc.text("10. Akibat Kecelakaan Kerja terhadap:", startX, y);
-        y += 6;
-        const splitAkibat = doc.splitTextToSize(data.Akibat || "Tidak ada cedera berat", 160);
-        doc.text(splitAkibat, startX + 5, y);
-        y += (splitAkibat.length * 5) + 4;
-
-        // 11. Tindakan Segera
-        doc.text("11. Tindakan yang dilakukan segera setelah kejadian:", startX, y);
-        y += 6;
-        const splitTindakan = doc.splitTextToSize(data.Tindakan_Awal || "-", 160);
-        doc.text(splitTindakan, startX + 5, y);
-        y += (splitTindakan.length * 5) + 4;
-
-        // 12. Oleh Siapa
-        doc.text("12. Tindakan dilakukan oleh:", startX, y);
-        y += 6;
-        doc.text("    " + (data.Tindakan_Oleh || "-"), startX + 5, y);
-        y += 15;
-
-        // --- 4. TABEL TANDA TANGAN ---
-        if(y > 230) { doc.addPage(); y = 20; }
-        
-        const boxW = 80;
-        const boxH = 40;
-        
-        doc.rect(25, y, boxW, 8); 
-        doc.rect(25 + boxW, y, boxW, 8); 
-        doc.setFont("helvetica", "bold");
-        doc.text("Pembuat Laporan", 25 + (boxW/2), y+5, null, null, "center");
-        doc.text("Penerima Laporan", 25 + boxW + (boxW/2), y+5, null, null, "center");
-        
-        y += 8;
-        doc.rect(25, y, boxW, boxH);
-        doc.rect(25 + boxW, y, boxW, boxH);
-        
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text("Paraf:", 27, y+5);
-        doc.text("Paraf:", 27 + boxW, y+5);
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text(`( ${data.Pelapor} )`, 25 + (boxW/2), y + boxH - 10, null, null, "center");
-        doc.text("( ........................... )", 25 + boxW + (boxW/2), y + boxH - 10, null, null, "center");
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text(`Tanggal: ${tglStr}`, 27, y + boxH - 3);
-        doc.text("Tanggal: .....................", 27 + boxW, y + boxH - 3);
-        
-        y += boxH + 10;
-
-        // --- 5. GRADING RISIKO ---
-        doc.setFontSize(10);
-        doc.text("Grading risiko kejadian* (dapat diisi atasan pelapor)", 25, y);
-        y += 7;
-        
-        const grades = ["Biru", "Hijau", "Kuning", "Merah"];
-        let xBox = 25;
-        grades.forEach(g => {
-            doc.rect(xBox, y-4, 4, 4);
-            if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) {
-                doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal");
-            }
-            doc.text(g, xBox + 6, y);
-            xBox += 35;
-        });
-
-        doc.setFontSize(8);
-        doc.text("NB* = pilih salah satu jawaban", 25, y+10);
-
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
-        doc.save(`Laporan_RSJ_${safeID}.pdf`);
+        const data = historyData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFillColor(220, 38, 38); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("BUKTI LAPORAN INSIDEN", 105, 20, null, null, "center");
+        doc.setTextColor(0, 0, 0); doc.setFontSize(10); let safeID = data.Ticket_ID || 'ID-???'; doc.text(`ID Tiket: ${safeID}`, 15, 50);
+        const details = [["Jenis Laporan", data.Jenis_Laporan || "-"], ["Pelapor", data.Pelapor || "-"], ["Area", data.Ruangan || "-"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"]];
+        doc.autoTable({ startY: 60, body: details, theme: 'grid' });
+        let finalY = doc.lastAutoTable.finalY + 10; doc.text("Deskripsi:", 15, finalY); doc.setFont("helvetica", "normal"); doc.text(doc.splitTextToSize(data.Deskripsi || "-", 180), 15, finalY + 7);
+        doc.save(`Laporan_${safeID}.pdf`);
     }
 
     // PDF 2
-    // --- PDF 2: BERITA ACARA INVESTIGASI (FORMAT TELAAH RSJ - SAMA DENGAN ADMIN) ---
     function downloadInvPDF(index) {
-        const data = historyData[index]; // Menggunakan historyData
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // --- 1. HEADER (KOP) ---
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center");
-        doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center");
-        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
-
-        // --- 2. BAGIAN I: DATA PEGAWAI ---
-        let y = 50;
-        doc.setFontSize(10);
-        doc.text("I.    DATA PEGAWAI", 20, y);
-        y += 8;
-
-        doc.setFont("helvetica", "normal");
-        const startX = 25;
-        const colVal = 70;
-
-        const rowData = (label, val) => {
-            doc.text(label, startX, y);
-            doc.text(":", colVal, y);
-            doc.text(String(val || "-"), colVal + 2, y);
-            y += 6;
-        };
-
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
-        rowData("Unit Kerja/Ruangan", data.Ruangan);
-        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-");
-        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
-        
-        doc.text("Jabatan", startX, y);
-        doc.text(":", colVal, y);
-        const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120);
-        doc.text(jabatanText, colVal + 2, y);
-        y += 6;
-        
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "italic");
-        doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y);
-        y += 10;
-
-        // --- 3. BAGIAN II: TINDAK LANJUT ---
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y);
-        y += 6;
-        
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "italic");
-        doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y);
-        y += 10;
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-
-        let contentText = "";
-        if (data.Inv_Uraian) contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Uraian + "\n\n";
-        if (data.Inv_Tindakan) contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Tindakan;
-        
-        if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
-
-        const splitContent = doc.splitTextToSize(contentText, 160);
-        doc.text(splitContent, 25, y);
-        
-        if (!data.Inv_Uraian && !data.Inv_Tindakan) {
-             for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); }
-        } else {
-             y += (splitContent.length * 5) + 10;
-        }
-
-        // --- 4. TANDA TANGAN ---
-        if (y > 230) { doc.addPage(); y = 40; } 
-        else { y += 15; }
-
-        const leftX = 55;
-        const rightX = 155;
-
-        // Tanggal Cetak
-        let tglCetak = new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
-        doc.setFont("helvetica", "normal");
-        doc.text(`Bogor, ${tglCetak}`, rightX, y, null, null, "center");
-        
-        y += 6;
-        doc.text("Mengetahui,", leftX, y, null, null, "center");
-        doc.text("Pembuat Laporan", rightX, y, null, null, "center");
-        
-        y += 6;
-        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center");
-        doc.text("Investigator / Admin", rightX, y, null, null, "center");
-
-        y += 25; 
-
-        doc.setFont("helvetica", "bold");
-        doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
-        doc.text(`( ${data.Inv_Petugas || "Admin K3"} )`, rightX, y, null, null, "center");
-
-        y += 5;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text("NIP. ...........................", leftX, y, null, null, "center");
-
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
-        doc.save(`Laporan_Telaah_${safeID}.pdf`);
+        const data = historyData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF(); let safeID = data.Ticket_ID || 'ID-???';
+        doc.setFillColor(30, 58, 138); doc.rect(0, 0, 210, 40, 'F'); doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("BERITA ACARA INVESTIGASI", 105, 20, null, null, "center"); doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.text("Dokumen Hasil Penanganan Admin", 105, 30, null, null, "center");
+        doc.setTextColor(0, 0, 0); doc.setFontSize(10); doc.text(`No. Dokumen: INV/${safeID}`, 15, 50);
+        const basicData = [["Status", "SELESAI (CLOSED)"], ["Waktu Kejadian", data.Waktu_Kejadian || "-"], ["Jenis Insiden", data.Jenis_Laporan || "-"]];
+        doc.autoTable({ startY: 60, body: basicData, theme: 'plain' });
+        let yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text("HASIL INVESTIGASI & PENANGANAN", 15, yPos);
+        const analysisData = [["Penyebab", data.Inv_Kondisi || "-"], ["Tindakan Perbaikan", data.Inv_Tindakan || "-"]];
+        doc.autoTable({ startY: yPos + 5, body: analysisData, theme: 'grid', headStyles: {fillColor: [220, 220, 220]} });
+        yPos = doc.lastAutoTable.finalY + 10; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("Investigator:", 15, yPos); doc.setFont("helvetica", "normal"); doc.text(data.Inv_Petugas || "Admin K3", 15, yPos + 7);
+        doc.save(`Hasil_Investigasi_${safeID}.pdf`);
     }
 
     function kirimLaporan() {
@@ -614,4 +394,3 @@
 
 </body>
 </html>
-
