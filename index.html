@@ -389,7 +389,7 @@
         rowData("Nama", data.Nama_Pegawai || data.Pelapor);
         rowData("Unit Kerja/Ruangan", data.unit_kerja || data.Ruangan);
         rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.ttl || "-"); 
+        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); 
         rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
         rowData("Jabatan", data.Jabatan);
 
@@ -668,5 +668,6 @@
 
 </body>
 </html>
+
 
 
