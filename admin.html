@@ -5,9 +5,11 @@
     <title>Executive Safety Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -15,6 +17,7 @@
             --sidebar-bg: #111827;
             --primary: #4f46e5;
             --primary-hover: #4338ca;
+            --success: #10b981;
             --text-main: #1f2937;
             --text-muted: #6b7280;
             --card-bg: #ffffff;
@@ -36,6 +39,8 @@
         .top-header { background: var(--card-bg); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .top-header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #111827; }
         
+        .header-actions { display: flex; gap: 10px; }
+
         .content-area { flex: 1; padding: 30px 40px; overflow-y: auto; }
         .hidden { display: none !important; }
 
@@ -58,8 +63,12 @@
         .qr-input-section { flex: 1; }
         .qr-preview-section { flex: 1; border-left: 1px solid #e5e7eb; padding-left: 30px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;}
         .input-modern { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #d1d5db; background: #f9fafb; font-size: 0.95rem; margin-bottom: 15px; box-sizing: border-box;}
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; }
+        
+        .btn-primary { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary:hover { background: var(--primary-hover); }
+        
+        .btn-success { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-success:hover { background: #059669; }
 
         /* BADGES & BUTTONS */
         .badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
@@ -67,15 +76,12 @@
         .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         
         .action-group { display: flex; gap: 5px; }
-        
         .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 4px; transition: all 0.2s; }
         .btn-process { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3); }
-        .btn-pdf { background: #fca5a5; color: #7f1d1d; } /* Merah Muda untuk Laporan Awal */
+        .btn-pdf { background: #fca5a5; color: #7f1d1d; } 
         .btn-pdf:hover { background: #f87171; color: white; }
-        
-        .btn-inv { background: #1e3a8a; color: white; } /* Biru Tua untuk Investigasi */
+        .btn-inv { background: #1e3a8a; color: white; } 
         .btn-inv:hover { background: #172554; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
         .btn-link { text-decoration: none; background: #e0f2fe; color: #0284c7; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block;}
 
         /* SWAL & PRINT */
@@ -88,7 +94,6 @@
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .full-width { grid-column: span 2; }
         
-        /* Animasi untuk investigasi form */
         #investigation-block { display: none; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -111,7 +116,10 @@
                 <h2 id="page-title">Laporan Masuk</h2>
                 <p style="margin-top:5px; color:#6b7280;">Sistem Manajemen K3 & Lingkungan</p>
             </div>
-            <button class="btn-primary" onclick="loadData()" style="width:auto;"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+            <div class="header-actions">
+                <button class="btn-success" onclick="downloadExcelB3()"><i class="fas fa-file-excel"></i> Download Rekap B3</button>
+                <button class="btn-primary" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh Data</button>
+            </div>
         </div>
 
         <div class="content-area">
@@ -129,7 +137,7 @@
                             <tr>
                                 <th>ID & Waktu</th>
                                 <th>Detail Pelapor</th>
-                                <th>Insiden</th>
+                                <th>Isi Laporan</th>
                                 <th>Status Laporan</th>
                                 <th width="220">Aksi & Dokumen</th>
                             </tr>
@@ -233,30 +241,44 @@
 
                 let docLink = (row.Doc_B3 && row.Doc_B3.length > 5) ? `<a href="${row.Doc_B3}" target="_blank" class="btn-link" title="Lihat Bukti"><i class="fas fa-image"></i></a>` : '';
                 
+                // Logic untuk Deskripsi: Jika B3, gunakan 'ket_lain' karena 'Deskripsi' mungkin kosong
+                let displayDesc = row.Deskripsi;
+                if(row.Jenis_Laporan === 'Laporan Bahan B3') {
+                    displayDesc = row.ket_lain ? row.ket_lain : 'Inspeksi Rutin B3 (Lihat Excel)';
+                }
+
                 // --- TOMBOL AKSI LOGIC ---
                 let actionBtn;
-                let invPdfBtn = ''; // Tombol PDF Investigasi Default Kosong
+                let invPdfBtn = ''; 
 
                 if(row.Status === 'Selesai') {
-                    // Jika Selesai: Tampilkan Tombol Closed & Tombol PDF Investigasi
                     actionBtn = `<button class="btn-action" style="background:#f3f4f6; color:#9ca3af; cursor:default;"><i class="fas fa-lock"></i> Closed</button>`;
-                    invPdfBtn = `<button class="btn-action btn-inv" onclick="generateInvestigationPDF(${index})" title="Cetak Dokumen Investigasi"><i class="fas fa-file-contract"></i> Inv</button>`;
+                    // Laporan B3 tidak butuh PDF Investigasi, hanya Insiden yang butuh
+                    if(row.Jenis_Laporan !== 'Laporan Bahan B3') {
+                        invPdfBtn = `<button class="btn-action btn-inv" onclick="generateInvestigationPDF(${index})" title="Cetak Dokumen Investigasi"><i class="fas fa-file-contract"></i> Inv</button>`;
+                    }
                 } else {
-                    // Jika Belum Selesai: Tombol Tindak Lanjut
                     actionBtn = `<button class="btn-action btn-process" onclick="prosesLaporan('${safeID}', '${row.Pelapor || 'Anonim'}')"><i class="fas fa-bolt"></i> Tindak</button>`;
+                }
+
+                // PDF Laporan Awal hanya untuk Insiden, B3 pakai Excel
+                let pdfLaporBtn = '';
+                if(row.Jenis_Laporan !== 'Laporan Bahan B3') {
+                    pdfLaporBtn = `<button class="btn-action btn-pdf" onclick="generatePDF(${index})" title="Cetak Laporan Pelapor"><i class="fas fa-file-pdf"></i> Lap</button>`;
                 }
 
                 let tr = `
                     <tr>
                         <td><strong style="color:var(--text-main);">${safeID}</strong><br><span style="font-size:0.85rem; color:var(--text-muted);">${displayDate}</span></td>
                         <td><div style="font-weight:600;">${row.Pelapor || 'Anonim'}</div><div style="font-size:0.85rem; color:var(--text-muted);"><i class="fab fa-whatsapp"></i> ${row.No_WA || '-'}</div><div style="font-size:0.8rem; color:var(--text-muted);">Area: ${row.Ruangan || '-'}</div></td>
-                        <td><div style="color:var(--primary); font-weight:600; margin-bottom:4px;">${row.Jenis_Laporan || 'Umum'}</div><div style="font-size:0.9rem; color:#4b5563; max-width:300px; line-height:1.4;">${row.Deskripsi || '-'}</div></td>
+                        <td><div style="color:var(--primary); font-weight:600; margin-bottom:4px;">${row.Jenis_Laporan || 'Umum'}</div><div style="font-size:0.9rem; color:#4b5563; max-width:300px; line-height:1.4;">${displayDesc || '-'}</div></td>
                         <td>${statusBadge}</td>
                         <td>
                             <div class="action-group">
                                 ${actionBtn}
-                                <button class="btn-action btn-pdf" onclick="generatePDF(${index})" title="Cetak Laporan Pelapor"><i class="fas fa-file-pdf"></i> Lap</button>
-                                ${invPdfBtn} ${docLink}
+                                ${pdfLaporBtn}
+                                ${invPdfBtn}
+                                ${docLink}
                             </div>
                         </td>
                     </tr>`;
@@ -270,7 +292,84 @@
         .catch(err => { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data. Cek Console Log.</td></tr>'; });
     }
 
-    // --- FUNGSI TINDAK LANJUT (POPUP DENGAN LOGIKA HIDE/SHOW) ---
+    // --- FUNGSI DOWNLOAD EXCEL B3 (BARU) ---
+    function downloadExcelB3() {
+        // Minta User Pilih Bulan & Tahun
+        Swal.fire({
+            title: 'Pilih Periode Laporan',
+            html: `
+                <input type="month" id="b3-month" class="swal2-input" style="width:80%">
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Download Excel',
+            preConfirm: () => {
+                const val = document.getElementById('b3-month').value;
+                if (!val) { Swal.showValidationMessage('Pilih bulan dulu!'); }
+                return val;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const selectedPeriod = result.value; // YYYY-MM
+                const [year, month] = selectedPeriod.split('-');
+                
+                // Filter Data: Hanya Jenis "Laporan Bahan B3" & Bulan Cocok
+                const filteredData = globalData.filter(row => {
+                    if (row.Jenis_Laporan !== 'Laporan Bahan B3') return false;
+                    
+                    // Ambil tanggal periksa dari data (tgl_periksa) atau Waktu_Lapor
+                    let dateStr = row.tgl_periksa || row.Waktu_Lapor; 
+                    if(!dateStr) return false;
+                    
+                    let d = new Date(dateStr);
+                    // Cocokkan Bulan (0-index) dan Tahun
+                    return (d.getFullYear() == year && (d.getMonth() + 1) == month);
+                });
+
+                if (filteredData.length === 0) {
+                    Swal.fire('Data Kosong', 'Tidak ada Laporan B3 di bulan tersebut.', 'info');
+                    return;
+                }
+
+                // Mapping Data ke Format Excel yang Rapih
+                const excelData = filteredData.map(item => {
+                    return {
+                        "Tanggal Periksa": item.tgl_periksa || new Date(item.Waktu_Lapor).toLocaleDateString(),
+                        "Ruangan / Unit": item.Ruangan || "-",
+                        "Nama Pemeriksa": item.Pelapor || "-",
+                        "Jml B3 Medis": item.jml_b3_medis || "0",
+                        "Jml B3 Lab": item.jml_b3_lab || "0",
+                        "Jml B3 RT": item.jml_b3_rt || "0",
+                        "Simbol B3 Sesuai": item.cek_simbol || "Tidak",
+                        "Kondisi Kemasan Baik": item.cek_kondisi || "Tidak",
+                        "Label Jelas": item.cek_label || "Tidak",
+                        "Penyimpanan Terpisah": item.cek_pisah || "Tidak",
+                        "Ada MSDS": item.cek_msds || "Tidak",
+                        "Ada Spill Kit": item.cek_spillkit || "Tidak",
+                        "Tidak Expired": item.cek_expired || "Tidak",
+                        "List B3 Medis": item.list_b3_medis || "-",
+                        "List B3 Lab": item.list_b3_lab || "-",
+                        "List B3 RT": item.list_b3_rt || "-",
+                        "Keterangan": item.ket_lain || "-"
+                    };
+                });
+
+                // Buat Worksheet & Workbook
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                
+                // Auto-width kolom (biar rapi)
+                const wscols = Object.keys(excelData[0]).map(k => ({wch: 20}));
+                ws['!cols'] = wscols;
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Rekap B3");
+
+                // Download File
+                XLSX.writeFile(wb, `Laporan_B3_${selectedPeriod}.xlsx`);
+            }
+        });
+    }
+
+    // --- FUNGSI TINDAK LANJUT ---
     function prosesLaporan(ticketId, namaPelapor) {
         Swal.fire({
             customClass: 'swal-wide',
@@ -344,309 +443,87 @@
     }
 
     // --- PDF 1: LAPORAN PELAPOR ---
-    // --- FUNGSI GENERATE PDF (VERSI FORMULIR RESMI RSJ) ---
-    // --- REVISI: PDF LAPORAN PELAPOR (DENGAN HARI OTOMATIS) ---
     function generatePDF(index) {
         const data = globalData[index];
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // --- 1. KOP JUDUL ---
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
         doc.text("LAPORAN PAK / KECELAKAAN KERJA PETUGAS", 105, 20, null, null, "center");
         doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 26, null, null, "center");
         
-        // --- 2. BAGIAN I: DATA PEGAWAI ---
-        let y = 40;
-        doc.setFontSize(10);
-        doc.text("I.    DATA PEGAWAI", 20, y);
-        y += 8;
-        
-        doc.setFont("helvetica", "normal");
-        const startX = 25;
-        const colVal = 70;
-        
-        // Helper function
+        let y = 40; doc.setFontSize(10); doc.text("I.    DATA PEGAWAI", 20, y); y += 8;
+        doc.setFont("helvetica", "normal"); const startX = 25; const colVal = 70;
         const rowData = (label, val) => {
-            doc.text(label, startX, y);
-            doc.text(":", colVal, y);
-            // Cek jika val kosong, beri tanda strip
-            doc.text(String(val && val !== "undefined" ? val : "-"), colVal + 2, y);
-            y += 6;
+            doc.text(label, startX, y); doc.text(":", colVal, y); doc.text(String(val && val !== "undefined" ? val : "-"), colVal + 2, y); y += 6;
         };
-
-        // Mapping Data
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
-        rowData("Unit Kerja/Ruangan", data.Ruangan);
-        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        // Pastikan kolom 'TTL' ada di Spreadsheet agar data ini muncul
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); 
-        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
-        rowData("Jabatan", data.Jabatan);
-
+        rowData("Nama", data.Nama_Pegawai || data.Pelapor); rowData("Unit Kerja/Ruangan", data.Ruangan); rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
+        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-")); rowData("Jabatan", data.Jabatan);
         y += 5;
 
-        // --- 3. BAGIAN II: RINCIAN KEJADIAN ---
-        doc.setFont("helvetica", "bold");
-        doc.text("II.   RINCIAN KEJADIAN", 20, y);
-        y += 8;
-        doc.setFont("helvetica", "normal");
-
-        // 1. Tanggal Waktu (DENGAN LOGIKA HARI OTOMATIS)
-        doc.text("1. Tanggal dan waktu kecelakaan kerja:", startX, y);
-        y += 6;
+        doc.setFont("helvetica", "bold"); doc.text("II.   RINCIAN KEJADIAN", 20, y); y += 8; doc.setFont("helvetica", "normal");
         
-        // Deteksi Hari & Tanggal
-        let hariStr = "..................";
-        let tglStr = "..................";
-        let jamStr = "..........";
-
+        let hariStr = "..................", tglStr = "..................", jamStr = "..........";
         if(data.Waktu_Kejadian) {
             let dateObj = new Date(data.Waktu_Kejadian);
             if(!isNaN(dateObj)) {
                 let days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                hariStr = days[dateObj.getDay()]; // Ambil nama hari
-                tglStr = dateObj.toLocaleDateString('id-ID');
-                // Format jam HH:MM WIB
+                hariStr = days[dateObj.getDay()]; tglStr = dateObj.toLocaleDateString('id-ID');
                 jamStr = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}).replace('.', ':');
             }
         }
-
-        doc.text(`    Hari: ${hariStr}      Tanggal: ${tglStr}      Jam: ${jamStr} WIB`, startX, y);
-        y += 8;
-
-        // 2. Kecelakaan Kerja
-        doc.text("2. Kecelakaan Kerja:", startX, y);
-        y += 6;
-        doc.text("    " + (data.Jenis_Laporan || "-"), startX, y);
-        y += 8;
-
-        // 3. Kronologis
-        doc.text("3. Kronologis Kejadian:", startX, y);
-        y += 6;
-        const splitDeskripsi = doc.splitTextToSize(data.Deskripsi || "-", 160);
-        doc.text(splitDeskripsi, startX + 5, y);
-        y += (splitDeskripsi.length * 5) + 4;
-
-        // 4. Jenis Kecelakaan
-        doc.text("4. Jenis Kecelakaan Kerja (Sesuai laporan):", startX, y);
-        y += 6;
-        doc.text("    [ v ] " + (data.Jenis_Detail || data.Jenis_Laporan || "Lain-lain"), startX, y);
-        y += 8;
-
-        // 5. Orang Pertama
-        doc.text("5. Orang Pertama yang melaporkan kejadian:", startX, y);
-        y += 6;
-        doc.text("    Nama: " + (data.Pelapor || "-"), startX + 5, y);
-        y += 8;
-
-        // 7. Tempat Kejadian
-        doc.text("7. Tempat Kejadian Kecelakaan Kerja:", startX, y);
-        y += 6;
-        doc.text("    Lokasi: " + (data.Ruangan_Korban || data.Ruangan || "-"), startX + 5, y);
-        y += 8;
-
-        // Cek halaman
+        doc.text("1. Tanggal dan waktu kecelakaan kerja:", startX, y); y += 6; doc.text(`    Hari: ${hariStr}      Tanggal: ${tglStr}      Jam: ${jamStr} WIB`, startX, y); y += 8;
+        doc.text("2. Kecelakaan Kerja:", startX, y); y += 6; doc.text("    " + (data.Jenis_Laporan || "-"), startX, y); y += 8;
+        doc.text("3. Kronologis Kejadian:", startX, y); y += 6; const splitDeskripsi = doc.splitTextToSize(data.Deskripsi || "-", 160); doc.text(splitDeskripsi, startX + 5, y); y += (splitDeskripsi.length * 5) + 4;
+        doc.text("4. Jenis Kecelakaan Kerja (Sesuai laporan):", startX, y); y += 6; doc.text("    [ v ] " + (data.Jenis_Detail || data.Jenis_Laporan || "Lain-lain"), startX, y); y += 8;
+        doc.text("5. Orang Pertama yang melaporkan kejadian:", startX, y); y += 6; doc.text("    Nama: " + (data.Pelapor || "-"), startX + 5, y); y += 8;
+        doc.text("7. Tempat Kejadian Kecelakaan Kerja:", startX, y); y += 6; doc.text("    Lokasi: " + (data.Ruangan_Korban || data.Ruangan || "-"), startX + 5, y); y += 8;
         if(y > 250) { doc.addPage(); y = 20; }
+        doc.text("10. Akibat Kecelakaan Kerja terhadap:", startX, y); y += 6; const splitAkibat = doc.splitTextToSize(data.Akibat || "Tidak ada cedera berat", 160); doc.text(splitAkibat, startX + 5, y); y += (splitAkibat.length * 5) + 4;
+        doc.text("11. Tindakan yang dilakukan segera setelah kejadian:", startX, y); y += 6; const splitTindakan = doc.splitTextToSize(data.Tindakan_Awal || "-", 160); doc.text(splitTindakan, startX + 5, y); y += (splitTindakan.length * 5) + 4;
+        doc.text("12. Tindakan dilakukan oleh:", startX, y); y += 6; doc.text("    " + (data.Tindakan_Oleh || "-"), startX + 5, y); y += 15;
 
-        // 10. Akibat
-        doc.text("10. Akibat Kecelakaan Kerja terhadap:", startX, y);
-        y += 6;
-        const splitAkibat = doc.splitTextToSize(data.Akibat || "Tidak ada cedera berat", 160);
-        doc.text(splitAkibat, startX + 5, y);
-        y += (splitAkibat.length * 5) + 4;
-
-        // 11. Tindakan Segera
-        doc.text("11. Tindakan yang dilakukan segera setelah kejadian:", startX, y);
-        y += 6;
-        const splitTindakan = doc.splitTextToSize(data.Tindakan_Awal || "-", 160);
-        doc.text(splitTindakan, startX + 5, y);
-        y += (splitTindakan.length * 5) + 4;
-
-        // 12. Oleh Siapa
-        doc.text("12. Tindakan dilakukan oleh:", startX, y);
-        y += 6;
-        doc.text("    " + (data.Tindakan_Oleh || "-"), startX + 5, y);
-        y += 15;
-
-        // --- 4. TABEL TANDA TANGAN ---
         if(y > 230) { doc.addPage(); y = 20; }
-        
-        const boxW = 80;
-        const boxH = 40;
-        
-        doc.rect(25, y, boxW, 8); 
-        doc.rect(25 + boxW, y, boxW, 8); 
-        doc.setFont("helvetica", "bold");
-        doc.text("Pembuat Laporan", 25 + (boxW/2), y+5, null, null, "center");
-        doc.text("Penerima Laporan", 25 + boxW + (boxW/2), y+5, null, null, "center");
-        
-        y += 8;
-        doc.rect(25, y, boxW, boxH);
-        doc.rect(25 + boxW, y, boxW, boxH);
-        
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text("Paraf:", 27, y+5);
-        doc.text("Paraf:", 27 + boxW, y+5);
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text(`( ${data.Pelapor} )`, 25 + (boxW/2), y + boxH - 10, null, null, "center");
-        doc.text("( ........................... )", 25 + boxW + (boxW/2), y + boxH - 10, null, null, "center");
+        const boxW = 80; const boxH = 40; doc.rect(25, y, boxW, 8); doc.rect(25 + boxW, y, boxW, 8); 
+        doc.setFont("helvetica", "bold"); doc.text("Pembuat Laporan", 25 + (boxW/2), y+5, null, null, "center"); doc.text("Penerima Laporan", 25 + boxW + (boxW/2), y+5, null, null, "center"); y += 8;
+        doc.rect(25, y, boxW, boxH); doc.rect(25 + boxW, y, boxW, boxH); doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("Paraf:", 27, y+5); doc.text("Paraf:", 27 + boxW, y+5);
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text(`( ${data.Pelapor} )`, 25 + (boxW/2), y + boxH - 10, null, null, "center"); doc.text("( ........................... )", 25 + boxW + (boxW/2), y + boxH - 10, null, null, "center");
+        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text(`Tanggal: ${tglStr}`, 27, y + boxH - 3); doc.text("Tanggal: .....................", 27 + boxW, y + boxH - 3); y += boxH + 10;
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.text(`Tanggal: ${tglStr}`, 27, y + boxH - 3);
-        doc.text("Tanggal: .....................", 27 + boxW, y + boxH - 3);
-        
-        y += boxH + 10;
-
-        // --- 5. GRADING RISIKO ---
-        doc.setFontSize(10);
-        doc.text("Grading risiko kejadian* (dapat diisi atasan pelapor)", 25, y);
-        y += 7;
-        
-        const grades = ["Biru", "Hijau", "Kuning", "Merah"];
-        let xBox = 25;
-        grades.forEach(g => {
-            doc.rect(xBox, y-4, 4, 4);
-            if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) {
-                doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal");
-            }
-            doc.text(g, xBox + 6, y);
-            xBox += 35;
-        });
-
-        doc.setFontSize(8);
-        doc.text("NB* = pilih salah satu jawaban", 25, y+10);
-
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
-        doc.save(`Laporan_RSJ_${safeID}.pdf`);
+        doc.setFontSize(10); doc.text("Grading risiko kejadian* (dapat diisi atasan pelapor)", 25, y); y += 7;
+        const grades = ["Biru", "Hijau", "Kuning", "Merah"]; let xBox = 25;
+        grades.forEach(g => { doc.rect(xBox, y-4, 4, 4); if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) { doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal"); } doc.text(g, xBox + 6, y); xBox += 35; });
+        doc.setFontSize(8); doc.text("NB* = pilih salah satu jawaban", 25, y+10);
+        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc'; doc.save(`Laporan_RSJ_${safeID}.pdf`);
     }
 
-    // --- PDF 2: BERITA ACARA INVESTIGASI (BARU) ---
-    // --- PDF 2: BERITA ACARA INVESTIGASI (FORMAT TELAAH RSJ) ---
+    // --- PDF 2: BERITA ACARA INVESTIGASI ---
     function generateInvestigationPDF(index) {
-        const data = globalData[index];
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // --- 1. HEADER (KOP) ---
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center");
-        doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center");
-        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
-
-        // --- 2. BAGIAN I: DATA PEGAWAI ---
-        let y = 50;
-        doc.setFontSize(10);
-        doc.text("I.    DATA PEGAWAI", 20, y);
-        y += 8;
-
-        doc.setFont("helvetica", "normal");
-        const startX = 25;
-        const colVal = 70;
-
-        // Helper function
-        const rowData = (label, val) => {
-            doc.text(label, startX, y);
-            doc.text(":", colVal, y);
-            doc.text(String(val || "-"), colVal + 2, y);
-            y += 6;
-        };
-
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor);
-        rowData("Unit Kerja/Ruangan", data.Ruangan);
-        rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-");
-        rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
-        
-        // Jabatan (Di form asli ada pilihan dicoret, di digital kita tulis langsung)
-        doc.text("Jabatan", startX, y);
-        doc.text(":", colVal, y);
-        const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120);
-        doc.text(jabatanText, colVal + 2, y);
-        y += 6;
-        
-        // Subtext jabatan
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "italic");
-        doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y);
-        y += 10;
-
-        // --- 3. BAGIAN II: TINDAK LANJUT ---
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y);
-        y += 6;
-        
-        doc.setFontSize(9);
-        doc.setFont("helvetica", "italic");
-        doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y);
-        y += 10;
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-
-        // Gabungkan Uraian Investigasi & Tindakan Perbaikan
-        let contentText = "";
-        
-        if (data.Inv_Uraian) {
-            contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Uraian + "\n\n";
-        }
-        if (data.Inv_Tindakan) {
-            contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Tindakan;
-        }
-        
+        const data = globalData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center"); doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center"); doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
+        let y = 50; doc.setFontSize(10); doc.text("I.    DATA PEGAWAI", 20, y); y += 8;
+        doc.setFont("helvetica", "normal"); const startX = 25; const colVal = 70;
+        const rowData = (label, val) => { doc.text(label, startX, y); doc.text(":", colVal, y); doc.text(String(val || "-"), colVal + 2, y); y += 6; };
+        rowData("Nama", data.Nama_Pegawai || data.Pelapor); rowData("Unit Kerja/Ruangan", data.Ruangan); rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-")); rowData("Tempat, Tanggal Lahir", data.TTL || "-"); rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
+        doc.text("Jabatan", startX, y); doc.text(":", colVal, y); const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120); doc.text(jabatanText, colVal + 2, y); y += 6;
+        doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y); y += 10;
+        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y); y += 6;
+        doc.setFontSize(9); doc.setFont("helvetica", "italic"); doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y); y += 10;
+        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+        let contentText = ""; if (data.Inv_Uraian) contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Uraian + "\n\n"; if (data.Inv_Tindakan) contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Tindakan;
         if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
-
-        // Tampilkan Text (Wrap)
-        const splitContent = doc.splitTextToSize(contentText, 160);
-        doc.text(splitContent, 25, y);
-        
-        // Garis-garis titik (Simulasi form tulis tangan jika data kosong)
-        if (!data.Inv_Uraian && !data.Inv_Tindakan) {
-             for(let i=0; i<15; i++) {
-                 y+=7;
-                 doc.text(".......................................................................................................................................................................", 25, y);
-             }
-        } else {
-             y += (splitContent.length * 5) + 10;
-        }
-
-        // --- 4. TANDA TANGAN ---
-        // Cek jika halaman penuh
-        if (y > 240) { doc.addPage(); y = 40; }
-        else { y += 20; }
-
-        const leftX = 50;
-        const rightX = 150;
-
-        doc.setFont("helvetica", "normal");
-        doc.text("Mengetahui,", leftX, y, null, null, "center");
-        doc.text("Pembuat Laporan", rightX, y, null, null, "center");
-        
-        y += 5;
-        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center");
-        
-        y += 25; // Spasi Tanda Tangan
-
-        doc.setFont("helvetica", "bold");
-        // Nama Kepala Instalasi K3 Sesuai Foto
-        doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
-        
-        // Nama Admin/Investigator yang login/input
-        doc.text(`( ${data.Inv_Petugas || "...................."} )`, rightX, y, null, null, "center");
-
-        // Simpan File
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
-        doc.save(`Laporan_Telaah_${safeID}.pdf`);
+        const splitContent = doc.splitTextToSize(contentText, 160); doc.text(splitContent, 25, y);
+        if (!data.Inv_Uraian && !data.Inv_Tindakan) { for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); } } else { y += (splitContent.length * 5) + 10; }
+        if (y > 230) { doc.addPage(); y = 40; } else { y += 15; }
+        const leftX = 55; const rightX = 155; let tglCetak = new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
+        doc.setFont("helvetica", "normal"); doc.text(`Bogor, ${tglCetak}`, rightX, y, null, null, "center"); y += 6;
+        doc.text("Mengetahui,", leftX, y, null, null, "center"); doc.text("Pembuat Laporan", rightX, y, null, null, "center"); y += 6;
+        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center"); doc.text("Investigator / Admin", rightX, y, null, null, "center"); y += 25; 
+        doc.setFont("helvetica", "bold"); doc.text("Vitri Lestari", leftX, y, null, null, "center"); doc.text(`( ${data.Inv_Petugas || "Admin K3"} )`, rightX, y, null, null, "center");
+        y += 5; doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("NIP. ...........................", leftX, y, null, null, "center");
+        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc'; doc.save(`Laporan_Telaah_${safeID}.pdf`);
     }
 
-    // Generator QR (Sama)
     function generateQR() {
         const ruangan = document.getElementById('qrRuangan').value;
         if(!ruangan) { Swal.fire('Error', 'Isi nama ruangan dulu!', 'warning'); return; }
@@ -657,8 +534,4 @@
     }
 </script>
 </body>
-
 </html>
-
-
-
