@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Form Laporan SIKA Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0056b3; /* Biru Profesional */
+            --secondary-color: #f8f9fa;
+            --accent-color: #00cba9;
+            --text-dark: #333;
+            --text-light: #6c757d;
+            --shadow-soft: 0 10px 25px rgba(0,0,0,0.05);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #eef2f7; /* Latar belakang abu-abu kebiruan terang */
+            margin: 0;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .header-banner {
+            background: linear-gradient(135deg, var(--primary-color), #004494);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header-banner h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header-banner p {
+            margin: 5px 0 0;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .form-content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+            font-size: 15px;
+        }
+        
+        label i {
+            margin-right: 8px;
+            color: var(--accent-color);
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fcfcfc;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary-color);
+            background: white;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .hidden { display: none; }
+
+        /* Styling Tombol Kirim */
+        .btn-submit-container {
+            margin-top: 40px;
+        }
+
+        button#btnSubmit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to right, var(--primary-color), #004494);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0, 86, 179, 0.3);
+        }
+
+        button#btnSubmit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 86, 179, 0.4);
+        }
+
+        button:disabled {
+            background: var(--text-light);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Styling Area Tanda Tangan */
+        .signature-wrapper {
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: #f8fafd;
+            text-align: center;
+        }
+        
+        canvas#signature-pad {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: white;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            touch-action: none; /* Penting untuk mobile */
+            width: 100%;
+            height: 200px;
+        }
+
+        .signature-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        button#clear-signature {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        button#clear-signature i { margin-right: 5px; }
+        button#clear-signature:hover { background: #c0392b; }
+
+        @media (max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; gap: 15px; }
+            .form-content { padding: 25px; }
+            .header-banner h2 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">
+        <h2><i class="fas fa-clipboard-check"></i> Form Laporan SIKA</h2>
+        <p>Surat Izin Kerja Aman - Digital Submission</p>
+    </div>
+    
+    <div class="form-content">
+        <form id="sikaForm" name="sika-form">
+            
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Nama Pemohon Izin</label>
+                <input type="text" name="namaPemohon" required placeholder="Nama lengkap Anda">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-building"></i> Nama Perusahaan Pemohon</label>
+                <input type="text" name="perusahaan" required placeholder="Nama perusahaan/vendor">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label><i class="far fa-calendar-alt"></i> Tanggal Mulai</label>
+                    <input type="date" name="tanggalMulai" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="far fa-clock"></i> Waktu Mulai</label>
+                    <input type="time" name="waktuMulai" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="far fa-calendar-check"></i> Tanggal Selesai</label>
+                    <input type="date" name="tanggalSelesai" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="far fa-clock"></i> Waktu Selesai</label>
+                    <input type="time" name="waktuSelesai" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fab fa-whatsapp"></i> No. Telepon (WhatsApp)</label>
+                <input type="text" name="noWa" placeholder="Mohon No nya di awali +628********" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Lokasi Pekerjaan</label>
+                <input type="text" name="lokasi" required placeholder="Area spesifik pekerjaan">
+            </div>
+            <div class="grid-2">
+                 <div class="form-group">
+                    <label><i class="fas fa-users"></i> Jumlah Pekerja</label>
+                    <input type="number" name="jumlahPekerja" min="1" required placeholder="Total personil">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-hard-hat"></i> Jenis Izin</label>
+                    <select name="jenisIzin" id="jenisIzin" required>
+                        <option value="">-- Pilih Jenis Izin --</option>
+                        <option value="Izin Kerja Panas">Izin Kerja Panas</option>
+                        <option value="Izin Kerja Dingin">Izin Kerja Dingin</option>
+                        <option value="Izin Kerja Listrik">Izin Kerja Listrik</option>
+                        <option value="Izin Kerja Ketinggian">Izin Kerja Ketinggian</option>
+                        <option value="Izin Kerja Galian">Izin Kerja Galian</option>
+                        <option value="Izin Kerja Radiasi">Izin Kerja Radiasi</option>
+                        <option value="Izin Kerja Ruang Terbatas">Izin Kerja Ruang Terbatas</option>
+                        <option value="Izin Kerja Angkat Angkut">Izin Kerja Angkat Angkut</option>
+                        <option value="Lainnya">Lainnya...</option>
+                    </select>
+                </div>
+            </div>
+           
+
+            <div class="form-group hidden" id="kolomLainnya">
+                <label><i class="fas fa-pen"></i> Sebutkan Jenis Izin Lainnya</label>
+                <input type="text" name="izinLainnya" id="izinLainnya" placeholder="Ketik jenis izin spesifik di sini...">
+            </div>
+
+             <div class="form-group">
+                <label><i class="fas fa-align-left"></i> Deskripsi Singkat Pekerjaan</label>
+                <textarea name="deskripsi" rows="4" required placeholder="Jelaskan secara singkat ruang lingkup pekerjaan..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-signature"></i> Tanda Tangan Pemohon</label>
+                <div class="signature-wrapper">
+                    <canvas id="signature-pad"></canvas>
+                    <input type="hidden" name="signatureData" id="signatureData">
+                    <div class="signature-actions">
+                        <button type="button" id="clear-signature"><i class="fas fa-eraser"></i> Hapus TTD</button>
+                    </div>
+                </div>
+                <small style="color: #e74c3c; display: none;" id="signature-error">Mohon tanda tangan terlebih dahulu.</small>
+            </div>
+            <div class="btn-submit-container">
+                <button type="submit" id="btnSubmit">KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+<script>
+    // 1. LOGIKA UNTUK KOLOM "LAINNYA"
+    const selectJenisIzin = document.getElementById('jenisIzin');
+    const kolomLainnya = document.getElementById('kolomLainnya');
+    const inputLainnya = document.getElementById('izinLainnya');
+
+    selectJenisIzin.addEventListener('change', function() {
+        if (this.value === 'Lainnya') {
+            kolomLainnya.classList.remove('hidden');
+            inputLainnya.setAttribute('required', 'true');
+            inputLainnya.focus();
+        } else {
+            kolomLainnya.classList.add('hidden');
+            inputLainnya.removeAttribute('required');
+            inputLainnya.value = ''; 
+        }
+    });
+
+    // 2. LOGIKA TANDA TANGAN
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255, 255, 255)',
+        penColor: 'rgb(0, 0, 0)'
+    });
+    const clearButton = document.getElementById('clear-signature');
+    const signatureError = document.getElementById('signature-error');
+
+    function resizeCanvas() {
+        const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear(); 
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas(); 
+
+    clearButton.addEventListener('click', function () {
+        signaturePad.clear();
+        signatureError.style.display = 'none';
+    });
+
+
+    // 3. LOGIKA PENGIRIMAN FORM
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec'; 
+
+    const form = document.forms['sika-form'];
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+
+        // Validasi Tanda Tangan sebelum kirim
+        if (signaturePad.isEmpty()) {
+            signatureError.style.display = 'block';
+            document.querySelector('.signature-wrapper').scrollIntoView({ behavior: 'smooth' });
+            return false;
+        } else {
+             signatureError.style.display = 'none';
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+        // Ambil data gambar TTD dari canvas dan masukkan ke input hidden
+        const dataURL = signaturePad.toDataURL();
+        document.getElementById('signatureData').value = dataURL;
+
+        // Buat FormData dari form
+        let formData = new FormData(form);
+
+        // =========================================================================
+        // INI ADALAH TAMBAHAN KODENYA AGAR MASUK KE DATABASE SIKA (DARI KATA "ACTION")
+        formData.append("action", "input_sika");
+        // =========================================================================
+
+        fetch(scriptURL, { method: 'POST', body: formData})
+            .then(response => {
+                alert("SUKSES! Laporan SIKA telah berhasil dikirim.");
+                
+                form.reset();
+                signaturePad.clear(); 
+                kolomLainnya.classList.add('hidden');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
+                window.scrollTo(0,0); 
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert("GAGAL! Terjadi kesalahan koneksi. Silakan coba lagi.");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
+            });
+    });
+</script>
+
+</body>
+</html>
