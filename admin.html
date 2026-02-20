@@ -119,10 +119,8 @@
             <div class="menu-title">Main Menu</div>
             <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="fas fa-home"></i> Beranda</div>
             <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i> QR Generator</div>
-            <div class="menu-title" style="margin-top: 20px;">System</div>
-            <div class="menu-item"><i class="fas fa-cog"></i> Pengaturan</div>
+            <div class="menu-item" onclick="showPage('sika', this)"><i class="fas fa-file-signature"></i> Laporan SIKA</div>
         </div>
-        <div class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</div>
         <div class="footer-copy">&copy; 2026 Instalasi K3KL</div>
     </div>
 
@@ -212,6 +210,33 @@
                     </div>
                 </div>
             </div>
+
+            <div id="page-sika" class="hidden">
+                <div class="table-section">
+                    <div class="table-header-tools">
+                        <div class="tool-title"><h3><i class="fas fa-file-signature"></i> Daftar Laporan SIKA Masuk</h3></div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Pelapor & Lokasi</th>
+                                    <th>Jenis & Deskripsi</th>
+                                    <th>Status</th>
+                                    <th width="180">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sikaTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">Belum ada data SIKA...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -228,20 +253,28 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
         const WEB_PELAPOR_URL = "https://keslingk3.github.io/apkpelaporanujicoba/"; 
         let globalData = [];
-        document.addEventListener("DOMContentLoaded", () => { loadData(); });
+        
+        // MENGGUNAKAN ACTION GET_SIKA AGAR DATA TIDAK BENTROK
+        const SCRIPT_URL_SIKA = SCRIPT_URL + "?action=get_sika"; 
+        let globalSikaData = [];
+
+        document.addEventListener("DOMContentLoaded", () => { 
+            loadData(); 
+            loadSikaData();
+        });
 
         function showPage(pageId, btn) {
             document.getElementById('page-dashboard').classList.add('hidden');
             document.getElementById('page-qr').classList.add('hidden');
             document.getElementById('page-b3-table').classList.add('hidden');
+            document.getElementById('page-sika').classList.add('hidden');
             document.getElementById('page-' + pageId).classList.remove('hidden');
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if(btn) btn.classList.add('active');
-            const titles = { 'dashboard': 'BERANDA', 'qr': 'GENERATOR QR CODE' };
+            const titles = { 'dashboard': 'BERANDA', 'qr': 'GENERATOR QR CODE', 'sika': 'LAPORAN SIKA (SURAT KERJA AMAN)' };
             if(titles[pageId]) document.getElementById('page-title').innerText = titles[pageId];
         }
 
-        // --- SMART DATA READER (Diambil dari file terlampir agar PDF terbaca) ---
         const getVal = (item, keys) => {
             for (let k of keys) {
                 if (item[k] !== undefined && item[k] !== null && item[k] !== "") return item[k];
@@ -254,9 +287,72 @@
             return ''; 
         };
 
+        // --- FUNGSI MENGAMBIL DATA SIKA ---
+        function loadSikaData() {
+            const tbody = document.getElementById('sikaTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="loading-state"><i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--primary-blue)"></i><br><br>Menyinkronkan data SIKA...</td></tr>';
+            
+            fetch(SCRIPT_URL_SIKA)
+            .then(res => res.json())
+            .then(data => {
+                globalSikaData = data;
+                tbody.innerHTML = '';
+                
+                if(!data || data.length === 0 || data.error) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">${data.error ? "Gagal terhubung: " + data.error : "Belum ada data SIKA masuk."}</td></tr>`;
+                    return;
+                }
+
+                data.slice().reverse().forEach((row, reversedIndex) => {
+                    let originalIndex = data.length - 1 - reversedIndex;
+                    
+                    let tglInput = row.Timestamp ? new Date(row.Timestamp).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-';
+                    let tglMulai = row['Tanggal Mulai'] ? new Date(row['Tanggal Mulai']).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : '-';
+                    let tglSelesai = row['Tanggal Selesai'] ? new Date(row['Tanggal Selesai']).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : '-';
+                    
+                    // PEMOTONG FORMAT WAKTU AGAR RAPI (TIDAK ADA TULISAN Z/T)
+                    let formatWaktu = (w) => {
+                        if (!w) return '-';
+                        let strW = String(w);
+                        if (strW.includes('T')) {
+                            let d = new Date(strW);
+                            return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+                        }
+                        return strW;
+                    };
+
+                    let wMulai = formatWaktu(row['Waktu Mulai']);
+                    let wSelesai = formatWaktu(row['Waktu Selesai']);
+
+                    let pemohon = row['Nama Pemohon'] || '-';
+                    let perusahaan = row.Perusahaan || '-';
+                    let lokasi = row.Lokasi || '-';
+                    let jenis = row['Jenis Izin'] || '-';
+                    let deskripsi = row.Deskripsi || '-';
+                    let jumlahPekerja = row['Jumlah Pekerja'] || '-';
+                    
+                    let pdfBtn = `<button class="btn-icon-small bg-act-red" onclick="generateSikaPDF(${originalIndex})" title="Cetak PDF SIKA"><i class="fas fa-file-pdf"></i></button>`;
+                    let waBtn = `<button class="btn-icon-small" style="background:#10b981;" onclick="kirimWaSika('${row['No WA']}', '${pemohon}', '${tglMulai}')" title="Kirim Izin via WhatsApp"><i class="fab fa-whatsapp"></i></button>`;
+
+                    tbody.innerHTML += `<tr>
+                        <td><strong>${tglInput}</strong><br><small style="color:#64748b"><i class="fas fa-user"></i> ${pemohon}</small><br><small style="color:#64748b"><i class="fas fa-building"></i> ${perusahaan}</small></td>
+                        <td>Mulai: <b>${tglMulai}</b> (${wMulai})<br>Selesai: <b>${tglSelesai}</b> (${wSelesai})<br><small style="color:#64748b"><i class="fas fa-map-marker-alt"></i> ${lokasi}</small></td>
+                        <td><strong style="color:var(--primary-blue)">${jenis}</strong><br><small style="color:#64748b">${deskripsi.substring(0,60)}...</small></td>
+                        <td><span class="badge badge-process"><i class="fas fa-users"></i> ${jumlahPekerja} Orang</span></td>
+                        <td><div class="action-group">${pdfBtn}${waBtn}</div></td>
+                    </tr>`;
+                });
+            })
+            .catch(err => {
+                console.error('Error Load SIKA:', err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">Gagal mengambil data SIKA. Pastikan URL Script benar dan jaringan stabil.</td></tr>';
+            });
+        }
+
         function showB3TablePage() {
             document.getElementById('page-dashboard').classList.add('hidden');
             document.getElementById('page-qr').classList.add('hidden');
+            document.getElementById('page-sika').classList.add('hidden');
             document.getElementById('page-b3-table').classList.remove('hidden');
             document.getElementById('page-title').innerText = "DATA INSPEKSI B3";
             renderB3Table();
@@ -301,27 +397,33 @@
                     
                     let actionBtn;
                     let invPdfBtn = ''; 
-                    // Tombol Investigasi dan Laporan menggunakan fungsi dari file lampiran (i = index)
                     if(row.Status === 'Selesai') {
                         actionBtn = `<button class="btn-icon-small bg-act-dark" title="Sudah Selesai" style="cursor:default;"><i class="fas fa-lock"></i></button>`;
                         if(row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Tumpahan B3') {
-                            // Fungsi dari lampiran dipanggil di sini
                             invPdfBtn = `<button class="btn-icon-small bg-act-inv" onclick="generateInvestigationPDF(${i})" title="Cetak Investigasi"><i class="fas fa-file-contract"></i></button>`;
                         }
                     } else {
                         actionBtn = `<button class="btn-icon-small bg-act-blue" onclick="prosesLaporan('${safeID}', '${row.Pelapor || 'Anonim'}', '${row.Jenis_Laporan}')" title="Tindak Lanjuti"><i class="fas fa-bolt"></i></button>`;
                     }
                     
-                    // Fungsi PDF Laporan dari lampiran dipanggil di sini
                     let pdfLaporBtn = `<button class="btn-icon-small bg-act-red" onclick="generatePDF(${i})" title="Cetak Laporan"><i class="fas fa-file-pdf"></i></button>`;
                     let docLink = (row.Doc_B3 && row.Doc_B3.length > 5) ? `<a href="${row.Doc_B3}" target="_blank" class="btn-icon-small bg-act-dark" style="text-decoration:none;" title="Lihat Foto"><i class="fas fa-image"></i></a>` : '';
+
+                    // =======================================================================
+                    // TOMBOL WA ARSIP: TAMPIL JIKA BUKAN TUMPAHAN B3
+                    let noWaPelapor = getVal(row, ['No_WA', 'wa', 'WA', 'Nomor_WA', 'No_Hp']) || '-';
+                    let waLaporBtn = '';
+                    if (row.Jenis_Laporan !== 'Tumpahan B3') {
+                        waLaporBtn = `<button class="btn-icon-small" style="background:#10b981;" onclick="kirimWaLaporan('${noWaPelapor}', '${row.Pelapor || 'Anonim'}', '${safeID}', '${row.Jenis_Laporan}')" title="Kirim Arsip Laporan via WhatsApp"><i class="fab fa-whatsapp"></i></button>`;
+                    }
+                    // =======================================================================
 
                     tbody.innerHTML += `<tr>
                         <td><strong>${safeID}</strong><br><small style="color:#64748b">${tgl}</small></td>
                         <td>${row.Pelapor}<br><small style="color:#64748b"><i class="fas fa-map-marker-alt"></i> ${row.Ruangan}</small></td>
                         <td><strong style="color:var(--primary-blue)">${row.Jenis_Laporan}</strong><br><small style="color:#64748b">${(row.Deskripsi || '-').substring(0,50)}...</small></td>
                         <td><span class="badge ${bClass}">${row.Status||'Menunggu'}</span></td>
-                        <td><div class="action-group">${actionBtn}${pdfLaporBtn}${invPdfBtn}${docLink}</div></td>
+                        <td><div class="action-group">${actionBtn}${pdfLaporBtn}${invPdfBtn}${docLink}${waLaporBtn}</div></td>
                     </tr>`;
                 });
                 document.getElementById('count-new').innerText = cN; document.getElementById('count-process').innerText = cP; document.getElementById('count-done').innerText = cD;
@@ -367,11 +469,6 @@
             }).then(r => { if(r.isConfirmed) { Swal.fire('Tersimpan!','Data berhasil diperbarui','success'); loadData(); }});
         }
 
-        // =========================================================================================
-        // START: FUNGSI DARI FILE "ADMINLAPLAP.HTML" (DICOPY PERSIS AGAR FITUR AKTIF)
-        // =========================================================================================
-
-        // 1. FUNGSI DOWNLOAD EXCEL B3
         function downloadExcelB3() {
             Swal.fire({
                 title: 'Pilih Periode', html: `<input type="month" id="b3-month" class="swal2-input" style="width:80%">`,
@@ -416,13 +513,11 @@
             });
         }
 
-        // 2. FUNGSI GENERATE PDF LAPORAN
         function generatePDF(index) {
             const data = globalData[index];
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            // FORMAT KHUSUS: TUMPAHAN B3
             if (data.Jenis_Laporan === 'Tumpahan B3') {
                 doc.setFontSize(12); doc.setFont("helvetica", "bold");
                 let judul = "LAPORAN TUMPAHAN BAHAN BERBAHAYA DAN BERACUN";
@@ -476,7 +571,6 @@
                 return;
             }
 
-            // FORMAT STANDAR (KECELAKAAN KERJA)
             doc.setFont("helvetica", "bold"); doc.setFontSize(11);
             doc.text("LAPORAN PAK / KECELAKAAN KERJA PETUGAS", 105, 20, null, null, "center");
             doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 26, null, null, "center");
@@ -546,11 +640,10 @@
             doc.setFontSize(10); doc.text("Grading risiko kejadian* (dapat diisi atasan pelapor)", 25, y); y += 7;
             const grades = ["Biru", "Hijau", "Kuning", "Merah"]; let xBox = 25;
             grades.forEach(g => { doc.rect(xBox, y-4, 4, 4); if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) { doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal"); } doc.text(g, xBox + 6, y); xBox += 35; });
-            doc.setFontSize(8); doc.text("NB* = pilih salah satu jawaban", 25, y+10);
+            doc.setFontSize(8); doc.text("", 25, y+10);
             let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc'; doc.save(`Laporan_RSJ_${safeID}.pdf`);
         }
 
-        // 3. FUNGSI GENERATE PDF INVESTIGASI
         function generateInvestigationPDF(index) {
             const data = globalData[index]; const { jsPDF } = window.jspdf; const doc = new jsPDF();
             doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center"); doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center"); doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
@@ -563,27 +656,28 @@
             
             rowData("Status Pegawai", getVal(data, ['Status_Pegawai', 'Status', 'status_pegawai']));
 
-            doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y); y += 10;
+            doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.text("", colVal + 2, y); y += 10;
             doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y); y += 6;
-            doc.setFontSize(9); doc.setFont("helvetica", "italic"); doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y); y += 10;
+            doc.setFontSize(9); doc.setFont("helvetica", "italic"); doc.text("", 25, y); y += 10;
             doc.setFont("helvetica", "normal"); doc.setFontSize(10);
             
             let contentText = ""; 
+            if (data.Inv_Kondisi) contentText += "KONDISI PENYEBAB:\n" + data.Inv_Kondisi + "\n\n"; 
             if (data.Inv_Tindakan) contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Tindakan + "\n\n"; 
             if (data.Inv_Uraian) contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Uraian;
             
             if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
             const splitContent = doc.splitTextToSize(contentText, 160); doc.text(splitContent, 25, y);
-            if (!data.Inv_Tindakan && !data.Inv_Uraian) { for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); } } else { y += (splitContent.length * 5) + 10; }
+            if (!data.Inv_Kondisi && !data.Inv_Tindakan && !data.Inv_Uraian) { for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); } } else { y += (splitContent.length * 5) + 10; }
             if (y > 230) { doc.addPage(); y = 40; } else { y += 20; }
             const leftX = 55; const rightX = 155;
             doc.setFont("helvetica", "normal"); doc.text("Mengetahui,", leftX, y, null, null, "center"); doc.text("Pembuat Laporan", rightX, y, null, null, "center"); y += 5;
             doc.text("Kepala Instalasi K3", leftX, y, null, null, "center"); y += 25; 
-            doc.setFont("helvetica", "bold"); doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
+            doc.setFont("helvetica", "bold"); doc.text("A H M A D, SKM, MM", leftX, y, null, null, "center"); 
             
             doc.text(`( ${data.Inv_Petugas || "...................."} )`, rightX, y, null, null, "center");
             
-            doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("NIP. ...........................", leftX, y + 5, null, null, "center");
+            doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("NIP. ........", leftX, y + 5, null, null, "center");
             let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
             doc.save(`Laporan_Telaah_${safeID}.pdf`);
         }
@@ -597,7 +691,289 @@
             document.getElementById('print-area').style.display = 'block'; document.getElementById('qr-placeholder').style.display = 'none'; document.getElementById('btnPrintQR').style.display = 'inline-block';
         }
 
+        // =========================================================================================
+        // FUNGSI BARU: CETAK PDF KHUSUS SIKA (FORMAT KOTAK / BORDER)
+        // =========================================================================================
+        function generateSikaPDF(index) {
+            try {
+                const data = globalSikaData[index];
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+
+                doc.setLineWidth(0.3);
+
+                // BOX 1: HEADER / TITLE
+                let y = 15;
+                doc.rect(15, y, 180, 15); 
+                
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.text("SURAT IZIN KERJA AMAN", 105, y + 6, null, null, "center");
+                doc.text("(SIKA)", 105, y + 12, null, null, "center");
+                doc.setFontSize(10);
+                doc.text("", 140, y + 9);
+                
+                y += 15; 
+
+                // BOX 2: JENIS IZIN KERJA
+                let box2Y = y;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text("JENIS IZIN KERJA", 18, y + 5); doc.text(":", 55, y + 5); 
+                y += 11;
+
+                doc.setFont("helvetica", "normal");
+                const jenisIzinList = [
+                    "Izin Kerja Panas", "Izin Kerja Dingin", "Izin Kerja Listrik",
+                    "Izin Kerja Ketinggian", "Izin Kerja Galian", "Izin Kerja Radiasi",
+                    "Izin Kerja Ruang Terbatas", "Izin Kerja Angkat Angkut"
+                ];
+                let x = 18;
+                jenisIzinList.forEach((jenis, idx) => {
+                    let isChecked = (data['Jenis Izin'] === jenis);
+                    doc.rect(x, y - 3, 3, 3);
+                    if(isChecked) {
+                        doc.setFont("helvetica", "bold");
+                        doc.text("X", x + 0.5, y - 0.5);
+                        doc.setFont("helvetica", "normal");
+                    }
+                    doc.text(jenis, x + 5, y);
+                    x += 60; 
+                    
+                    if((idx + 1) % 3 === 0) {
+                        y += 6;
+                        x = 18;
+                    }
+                });
+
+                if (data['Jenis Izin'] === "Lainnya") {
+                    doc.rect(x, y - 3, 3, 3);
+                    doc.setFont("helvetica", "bold");
+                    doc.text("X", x + 0.5, y - 0.5);
+                    doc.setFont("helvetica", "normal");
+                    doc.text("Lainnya: " + String(data['Detail Lainnya'] || '-'), x + 5, y);
+                } else if (data['Detail Lainnya'] && data['Detail Lainnya'] !== "-") {
+                    doc.text("Lainnya: " + String(data['Detail Lainnya'] || '-'), x, y);
+                }
+
+                y += 5; 
+                doc.rect(15, box2Y, 180, y - box2Y); 
+
+                let getWaktu = (w) => {
+                    if (!w) return '-';
+                    if (typeof w === 'string' && w.includes('T')) {
+                        let d = new Date(w);
+                        return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+                    }
+                    return String(w);
+                };
+
+                // BOX 3: MASA BERLAKU
+                let box3Y = y;
+                doc.setFont("helvetica", "bold");
+                doc.text("MASA BERLAKU IZIN", 18, y + 5); doc.text(":", 55, y + 5);
+                doc.setFont("helvetica", "normal");
+                
+                let tglMulai = data['Tanggal Mulai'] ? new Date(data['Tanggal Mulai']).toLocaleDateString('id-ID') : '-';
+                let tglSelesai = data['Tanggal Selesai'] ? new Date(data['Tanggal Selesai']).toLocaleDateString('id-ID') : '-';
+                let wMulai = getWaktu(data['Waktu Mulai']);
+                let wSelesai = getWaktu(data['Waktu Selesai']);
+                
+                y += 11;
+                doc.text("Dari Tanggal", 18, y); doc.text(":", 45, y); doc.text(tglMulai, 48, y);
+                doc.text("Pukul", 85, y); doc.text(":", 97, y); doc.text(wMulai + " WIB", 100, y);
+                y += 6;
+                doc.text("Sampai Tanggal", 18, y); doc.text(":", 45, y); doc.text(tglSelesai, 48, y);
+                doc.text("Pukul", 85, y); doc.text(":", 97, y); doc.text(wSelesai + " WIB", 100, y);
+                
+                y += 5; 
+
+                doc.line(130, box3Y, 130, y); 
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                let warningText = "Jika kondisi berubah dan/atau terdapat\npertimbangan keselamatan dari pekerja yang\nterlibat, segera hentikan pekerjaan dan tinjau\nkembali untuk perbaikan";
+                doc.text(warningText, 133, box3Y + 6); 
+                
+                doc.rect(15, box3Y, 180, y - box3Y); 
+
+                // BOX 4: IDENTITAS PEMOHON
+                let box4Y = y;
+                y += 6;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                const colX = 90;
+                const valX = 93;
+
+                doc.text("IZIN DIBERIKAN KEPADA PERUSAHAAN", 18, y); doc.text(":", colX, y); doc.text(String(data['Perusahaan'] || '-'), valX, y); y += 6;
+                doc.text("NAMA PENANGGUNG JAWAB PEKERJAAN", 18, y); doc.text(":", colX, y); doc.text(String(data['Nama Pemohon'] || '-'), valX, y); y += 6;
+                doc.text("NOMOR TELEPON", 18, y); doc.text(":", colX, y); doc.text(String(data['No WA'] || '-'), valX, y); y += 6;
+                doc.text("LOKASI PEKERJAAN", 18, y); doc.text(":", colX, y); doc.text(String(data['Lokasi'] || '-'), valX, y); y += 6;
+                doc.text("JUMLAH PEKERJA TERLIBAT", 18, y); doc.text(":", colX, y); doc.text(String(data['Jumlah Pekerja'] || '-') + " Orang", valX, y); y += 6;
+                doc.text("DESKRIPSI SINGKAT PEKERJAAN", 18, y); doc.text(":", colX, y); y += 5;
+                
+                const safeDeskripsi = String(data['Deskripsi'] || '-');
+                const splitDesk = doc.splitTextToSize(safeDeskripsi, 170);
+                doc.text(splitDesk, 18, y); y += (splitDesk.length * 5) + 3;
+
+                doc.rect(15, box4Y, 180, y - box4Y); 
+
+                // BOX 5: PETUNJUK PENGISIAN
+                let box5Y = y;
+                y += 6;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text("PETUNJUK PENGISIAN :", 18, y); y += 5;
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.text("1. Kolom surat izin kerja aman ini diisi oleh penyedia jasa konstruksi", 18, y); y += 4;
+                doc.text("2. Isilah setiap kolom pernyataan dengan tanda cek list apabila pernyataan tersebut dilakukan atau tidak dilakukan", 18, y); y += 4;
+                doc.text("3. Bacalah formulir ini dengan seksama dan isilah dengan sebenar-benarnya", 18, y); y += 4;
+                doc.text("4. Penyedia jasa akan selalu mematuhi setiap ketentuan dalam Surat Izin Kerja Aman ini", 18, y); y += 4;
+                doc.text("5. Segala kerusakan, kerugian dan kecelakaan akibat kerja akan mejadi tanggung jawab penyedia jasa sebagai pihak pemohon izin", 18, y); y += 5;
+
+                doc.rect(15, box5Y, 180, y - box5Y); 
+
+                // TABEL CHECKLIST
+                const tableData = [
+                    ["1", "Pekerjaan yang diusulkan telah diperiksa oleh operator yang bertugas dan semua pekerja yang terlibat memahami deskripsi pekerjaannya", "", "", "6", "Seluruh pekerja telah dimintakan komitmen untuk selalu menggunakan alat pelindung diri selama malakukan pekerjaan", "", ""],
+                    ["2", "Pekerjaan yang akan dilakukan telah dibuatkan JSA untuk memastikan setiap bahaya potensial telah teridentifikasi disertai dengan rekomendasi pengendaliannya", "", "", "7", "Seluruh pekerja yang terlibat telah dipastikan merupakan pekerja yang kompeten dalam bidang pekerjaannya dan dalam keadaan sehat jasmani serta rohani", "", ""],
+                    ["3", "Safety talk telah dilakukan sebelum pekerjaan dimulai untuk seluruh pekerja yang akan terlibat.", "", "", "8", "Kotak P3K telah tersedia di tempat kerja dan memenuhi persyaratan", "", ""],
+                    ["4", "Peralatan kerja dan safety device yang akan digunakan telah diperiksa dan dalam kondisi baik", "", "", "9", "Lingkungan sekitar pekerjaan telah dilakukan pengecekan dan aman untuk pekerjaan dilakukan", "", ""],
+                    ["5", "Seluruh alat pelindung diri untuk para pekerja telah tersedia sesuai dengan jenis pekerjaan dan potensi bahayanya", "", "", "10", "Petugas penanggung jawab lapangan telah ditunjuk untuk mengawasi kepatuhan keamanan, keselamatan dan kesehatan kerja", "", ""]
+                ];
+
+                doc.autoTable({
+                    startY: y,
+                    head: [
+                        [{content: 'ITEM', colSpan: 2, styles: {halign: 'center'}}, {content: 'DILAKUKAN', colSpan: 2, styles: {halign: 'center'}}, {content: 'ITEM', colSpan: 2, styles: {halign: 'center'}}, {content: 'DILAKUKAN', colSpan: 2, styles: {halign: 'center'}}],
+                        ['No', 'Pernyataan', 'YA', 'TIDAK', 'No', 'Pernyataan', 'YA', 'TIDAK']
+                    ],
+                    body: tableData,
+                    theme: 'grid',
+                    styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak', lineColor: [0, 0, 0], lineWidth: 0.3, valign: 'middle' },
+                    headStyles: { fillColor: [240, 240, 240], textColor: [0,0,0], fontStyle: 'bold' },
+                    columnStyles: {
+                        0: {cellWidth: 6, halign: 'center'},
+                        1: {cellWidth: 60},
+                        2: {cellWidth: 12, halign: 'center'},
+                        3: {cellWidth: 12, halign: 'center'},
+                        4: {cellWidth: 6, halign: 'center'},
+                        5: {cellWidth: 60},
+                        6: {cellWidth: 12, halign: 'center'},
+                        7: {cellWidth: 12, halign: 'center'},
+                    },
+                    margin: { left: 15, right: 15 }
+                });
+
+                if (doc.lastAutoTable) { y = doc.lastAutoTable.finalY; } 
+                else if (doc.previousAutoTable) { y = doc.previousAutoTable.finalY; } 
+                else { y += 50; }
+
+                if (y > 240) { doc.addPage(); y = 20; }
+
+                // BOX 6: TANDA TANGAN 
+                let box6Y = y;
+                doc.rect(15, box6Y, 180, 45); 
+                doc.line(105, box6Y, 105, box6Y + 45); 
+
+                y += 6;
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.text("Nama Pemohon Izin", 18, y); doc.text(":", 55, y); doc.text(String(data['Nama Pemohon'] || '-'), 58, y);
+                doc.text("Nama Pemberi Izin", 108, y); doc.text(":", 140, y); doc.text("..........................................", 143, y); y += 6;
+                doc.text("Tanggal", 18, y); doc.text(":", 55, y); doc.text(tglMulai, 58, y);
+                doc.text("Tanggal", 108, y); doc.text(":", 140, y); doc.text("..........................................", 143, y); y += 8;
+
+                doc.setFont("helvetica", "bold");
+                doc.text("Tanda Tangan", 60, y, null, null, "center");
+                doc.text("Tanda Tangan", 150, y, null, null, "center"); y += 5;
+
+                let ttdSource = data['Tanda Tangan'] || "";
+                if (ttdSource && ttdSource.includes('data:image')) {
+                    try {
+                        doc.addImage(ttdSource, 'PNG', 45, y, 30, 15);
+                    } catch (e) { console.warn("Gambar TTD gagal di-render"); }
+                }
+
+                y += 18;
+                doc.text(`( ${data['Nama Pemohon'] || '...'} )`, 60, y, null, null, "center");
+                doc.text("( .............................................. )", 150, y, null, null, "center");
+
+                let safeID = data['Nama Pemohon'] ? String(data['Nama Pemohon']).replace(/[^a-zA-Z0-9]/g, '_') : 'Pemohon';
+                let safeTgl = tglMulai.replace(/\//g, '-'); 
+                
+                doc.save(`SIKA_${safeID}_${safeTgl}.pdf`);
+
+            } catch (err) {
+                console.error("Error Generate SIKA PDF: ", err);
+                Swal.fire('Gagal Mencetak PDF', 'Terjadi kendala saat menyusun data PDF: ' + err.message, 'error');
+            }
+        }
+
+        // =========================================================================================
+        // FUNGSI BARU: KIRIM NOTIFIKASI IZIN VIA WHATSAPP (SIKA)
+        // =========================================================================================
+        function kirimWaSika(noWa, pemohon, tglMulai) {
+            if(!noWa || noWa === '-' || String(noWa).trim() === '') {
+                Swal.fire('Gagal', 'Nomor WhatsApp pemohon tidak tersedia di data.', 'error');
+                return;
+            }
+
+            let phone = String(noWa).replace(/[^0-9]/g, '');
+            if(phone.startsWith('0')) {
+                phone = '62' + phone.substring(1);
+            }
+
+            let pesan = `Halo *${pemohon}*,\n\nIzin Work Permit (SIKA) Anda untuk pekerjaan tanggal *${tglMulai}* telah disetujui.\n\nBerikut kami lampirkan dokumen SIKA yang telah diterbitkan.\n\nTerima kasih,\n*Instalasi Kesling dan K3RS*`;
+
+            Swal.fire({
+                title: 'Kirim via WhatsApp?',
+                html: `Kirim notifikasi izin ke <b>${pemohon}</b> (${phone})?<br><br><small style="color:#64748b">Sistem akan membuka WhatsApp Anda. Silakan <b>lampirkan file PDF</b> yang sudah Anda download sebelumnya di kolom chat.</small>`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fab fa-whatsapp"></i> Buka WhatsApp',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(pesan)}`, '_blank');
+                }
+            });
+        }
+
+        // =========================================================================================
+        // FUNGSI BARU: KIRIM ARSIP LAPORAN VIA WHATSAPP (KECELAKAAN KERJA)
+        // =========================================================================================
+        function kirimWaLaporan(noWa, pelapor, ticketId, jenisLaporan) {
+            if(!noWa || noWa === '-' || String(noWa).trim() === '' || noWa === 'undefined') {
+                Swal.fire('Gagal', 'Nomor WhatsApp pelapor tidak tersedia di data laporan ini.', 'error');
+                return;
+            }
+
+            let phone = String(noWa).replace(/[^0-9]/g, '');
+            if(phone.startsWith('0')) {
+                phone = '62' + phone.substring(1);
+            }
+
+            let pesan = `Halo *${pelapor}*,\n\nBerikut kami lampirkan dokumen arsip untuk *${jenisLaporan}* Anda dengan ID Tiket *${ticketId}*.\n\nSilakan simpan dokumen PDF laporan serta hasil investigasi ini untuk arsip Anda.\n\nTerima kasih,\n*Instalasi Kesling dan K3RS*`;
+
+            Swal.fire({
+                title: 'Kirim Arsip via WhatsApp?',
+                html: `Kirim dokumen laporan ke <b>${pelapor}</b> (${phone})?<br><br><small style="color:#64748b">Sistem akan membuka WhatsApp Anda. Silakan <b>lampirkan file PDF Laporan/Investigasi</b> yang sudah Anda download sebelumnya di kolom chat.</small>`,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fab fa-whatsapp"></i> Buka WhatsApp',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(pesan)}`, '_blank');
+                }
+            });
+        }
+
     </script>
 </body>
 </html>
-
