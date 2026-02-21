@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root {
             --primary-color: #0056b3; /* Biru Profesional */
@@ -359,7 +361,14 @@
 
         fetch(scriptURL, { method: 'POST', body: formData})
             .then(response => {
-                alert("SUKSES! Laporan SIKA telah berhasil dikirim.");
+                // REVISI POPUP SUKSES MENJADI LEBIH MENARIK
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Laporan Berhasil!',
+                    html: 'Laporan SIKA Anda telah berhasil dikirim.<br><br><b>Terima kasih sudah menyampaikan laporan.</b>',
+                    confirmButtonColor: '#0056b3',
+                    confirmButtonText: 'Selesai'
+                });
                 
                 form.reset();
                 signaturePad.clear(); 
@@ -370,7 +379,15 @@
             })
             .catch(error => {
                 console.error('Error!', error.message);
-                alert("GAGAL! Terjadi kesalahan koneksi. Silakan coba lagi.");
+                // REVISI POPUP ERROR MENJADI LEBIH MENARIK
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pengiriman Gagal!',
+                    text: 'Terjadi kesalahan koneksi. Silakan periksa internet Anda dan coba lagi.',
+                    confirmButtonColor: '#e74c3c',
+                    confirmButtonText: 'Tutup'
+                });
+                
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
             });
