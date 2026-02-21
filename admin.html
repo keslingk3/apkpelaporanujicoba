@@ -132,7 +132,7 @@
         <div class="menu">
             <div class="menu-title">Main Menu</div>
             <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="fas fa-home"></i> Beranda</div>
-            <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i>Cetak RQ</div>
+            <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i>Cetak Barcode QR</div>
             <div class="menu-item" onclick="showPage('sika', this)"><i class="fas fa-file-signature"></i> Laporan SIKA</div>
             <div class="menu-item" onclick="showPage('b3-table', this)"><i class="fas fa-biohazard"></i> Laporan Bahan B3</div>
             
@@ -226,7 +226,7 @@
                     <div style="flex:1;">
                         <h3 style="margin-top:0; color:#1e293b;">Buat QR Code Lokasi</h3>
                         <p style="color:#64748b; margin-bottom:20px;">Masukkan nama ruangan (pisahkan dengan <b>koma</b> atau <b>enter/baris baru</b> untuk membuat banyak QR sekaligus).</p>
-                        <textarea id="qrRuangan" class="input-modern" rows="5" placeholder="Contoh:&#10;Gudang Farmasi&#10;IGD Lorong Kanan&#10;Ruang Operasi 1"></textarea>
+                        <textarea id="qrRuangan" class="input-modern" rows="5" placeholder="Contoh:&#10;Gudang Farmasi&#10;IGD &#10;Utari"></textarea>
                         <button class="btn-modern btn-blue" onclick="generateQR()" style="width:100%; justify-content:center; padding:12px;"><i class="fas fa-magic"></i> Generate QR Code</button>
                     </div>
                     <div style="flex:1; border-left:1px solid #e2e8f0; padding-left:40px; text-align:center; max-height: 500px; overflow-y: auto;">
@@ -1028,4 +1028,5 @@
     </script>
 </body>
 </html>
+
 
