@@ -112,7 +112,14 @@
         .bg-act-inv { background: #1e3a8a; } /* Warna khusus tombol investigasi */
         .loading-state { text-align: center; padding: 50px; color: #94a3b8; }
         .swal-wide { width: 700px !important; }
-        @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; text-align: center; } }
+        
+        /* CSS REVISI UNTUK MENCETAK BANYAK QR CODE */
+        @media print { 
+            body * { visibility: hidden; } 
+            #print-area, #print-area * { visibility: visible; } 
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 20px; } 
+            .qr-card-print { page-break-inside: avoid; break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -218,17 +225,17 @@
                 <div class="qr-container">
                     <div style="flex:1;">
                         <h3 style="margin-top:0; color:#1e293b;">Buat QR Code Lokasi</h3>
-                        <p style="color:#64748b; margin-bottom:20px;">Masukkan nama ruangan untuk membuat QR Code.</p>
-                        <input type="text" id="qrRuangan" class="input-modern" placeholder="Contoh: Gudang Farmasi">
+                        <p style="color:#64748b; margin-bottom:20px;">Masukkan nama ruangan (pisahkan dengan <b>koma</b> atau <b>enter/baris baru</b> untuk membuat banyak QR sekaligus).</p>
+                        <textarea id="qrRuangan" class="input-modern" rows="5" placeholder="Contoh:&#10;Gudang Farmasi&#10;IGD Lorong Kanan&#10;Ruang Operasi 1"></textarea>
                         <button class="btn-modern btn-blue" onclick="generateQR()" style="width:100%; justify-content:center; padding:12px;"><i class="fas fa-magic"></i> Generate QR Code</button>
                     </div>
-                    <div style="flex:1; border-left:1px solid #e2e8f0; padding-left:40px; text-align:center;">
+                    <div style="flex:1; border-left:1px solid #e2e8f0; padding-left:40px; text-align:center; max-height: 500px; overflow-y: auto;">
                         <div id="qr-placeholder" style="color:#cbd5e1; padding-top:40px;"><i class="fas fa-qrcode" style="font-size:4rem; margin-bottom:15px;"></i><br>Preview QR Code</div>
-                        <div id="print-area" style="display:none; text-align:center; padding:20px; border:2px solid #000; width:250px; margin:0 auto;">
-                            <h3 style="margin:0; font-size:16px; font-weight:bold; color:black;">SCAN UNTUK LAPOR</h3><p style="margin:5px 0; font-size:12px; color:black;">Safety Reporting System</p>
-                            <img id="qrImage" src="" style="width:150px; height:150px; margin:10px 0;"><h2 id="qrText" style="margin:0; font-size:18px; font-weight:bold; color:black; text-transform:uppercase;">RUANGAN</h2>
-                        </div>
-                        <button id="btnPrintQR" class="btn-modern btn-grey" onclick="window.print()" style="margin-top:20px; display:none;"><i class="fas fa-print"></i> Cetak QR</button>
+                        
+                        <div id="print-area" style="display:none; flex-wrap: wrap; justify-content: center; gap: 15px;">
+                            </div>
+
+                        <button id="btnPrintQR" class="btn-modern btn-grey" onclick="window.print()" style="margin-top:20px; display:none; width: 100%; justify-content: center;"><i class="fas fa-print"></i> Cetak Semua QR</button>
                     </div>
                 </div>
             </div>
@@ -706,13 +713,42 @@
             doc.save(`Laporan_Telaah_${safeID}.pdf`);
         }
         
+        // --- REVISI FUNGSI UNTUK GENERATE BANYAK QR CODE SEKALIGUS ---
         function generateQR() {
-            const ruangan = document.getElementById('qrRuangan').value;
-            if(!ruangan) { Swal.fire('Error', 'Isi nama ruangan dulu!', 'warning'); return; }
-            const finalLink = `${WEB_PELAPOR_URL}?ruang=${encodeURIComponent(ruangan)}`;
-            const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${finalLink}`;
-            document.getElementById('qrImage').src = qrApi; document.getElementById('qrText').innerText = ruangan.toUpperCase();
-            document.getElementById('print-area').style.display = 'block'; document.getElementById('qr-placeholder').style.display = 'none'; document.getElementById('btnPrintQR').style.display = 'inline-block';
+            const inputVal = document.getElementById('qrRuangan').value;
+            if(!inputVal.trim()) { Swal.fire('Error', 'Isi nama ruangan dulu!', 'warning'); return; }
+            
+            // Pisahkan teks berdasarkan koma atau enter/baris baru
+            const ruanganArray = inputVal.split(/,|\n/).map(r => r.trim()).filter(r => r !== "");
+            
+            if(ruanganArray.length === 0) { Swal.fire('Error', 'Format ruangan tidak valid!', 'warning'); return; }
+
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = ''; // Bersihkan cetakan sebelumnya
+            
+            ruanganArray.forEach(ruangan => {
+                const finalLink = `${WEB_PELAPOR_URL}?ruang=${encodeURIComponent(ruangan)}`;
+                // Encode ulang URL agar aman masuk ke API QR Server
+                const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(finalLink)}`;
+                
+                const card = document.createElement('div');
+                card.className = 'qr-card-print';
+                // Styling inline untuk kotak per-QR
+                card.style.cssText = 'text-align:center; padding:20px; border:2px solid #000; width:220px; background: white;';
+                
+                card.innerHTML = `
+                    <h3 style="margin:0; font-size:16px; font-weight:bold; color:black;">SCAN UNTUK LAPOR</h3>
+                    <p style="margin:5px 0; font-size:12px; color:black;">Safety Reporting System</p>
+                    <img src="${qrApi}" style="width:150px; height:150px; margin:10px 0; display:inline-block;">
+                    <h2 style="margin:0; font-size:18px; font-weight:bold; color:black; text-transform:uppercase;">${ruangan}</h2>
+                `;
+                printArea.appendChild(card);
+            });
+
+            // Tampilkan UI hasil cetak
+            printArea.style.display = 'flex'; 
+            document.getElementById('qr-placeholder').style.display = 'none'; 
+            document.getElementById('btnPrintQR').style.display = 'inline-flex';
         }
 
         function generateSikaPDF(index) {
