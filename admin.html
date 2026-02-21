@@ -28,7 +28,9 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; display: flex; height: 100vh; color: var(--text-dark); overflow: hidden; }
 
         /* --- SIDEBAR --- */
-        .sidebar { width: var(--sidebar-width); background: #ffffff; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; z-index: 10; }
+        .sidebar { width: var(--sidebar-width); background: #ffffff; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; z-index: 10; transition: margin-left 0.3s ease; }
+        .sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-width)); }
+        
         .brand { padding: 25px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; }
         .brand-logo { width: 40px; height: 40px; background: var(--primary-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
         .brand-text h4 { margin: 0; font-size: 1rem; font-weight: 800; color: #1e293b; letter-spacing: 0.5px; }
@@ -43,8 +45,13 @@
         .footer-copy { text-align: center; font-size: 0.75rem; color: #cbd5e1; padding-bottom: 15px; }
 
         /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-body); }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-body); transition: all 0.3s ease; }
         .top-header { background: var(--primary-blue); padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        
+        .header-title-wrapper { display: flex; align-items: center; gap: 15px; }
+        .toggle-btn { cursor: pointer; font-size: 1.4rem; color: white; transition: 0.2s; }
+        .toggle-btn:hover { opacity: 0.8; }
+        
         .header-left h2 { margin: 0; font-size: 1.6rem; font-weight: 800; }
         .header-left p { margin: 5px 0 0; opacity: 0.9; font-size: 0.9rem; font-weight: 300; }
         .header-right { display: flex; align-items: center; gap: 20px; }
@@ -120,13 +127,27 @@
             <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="fas fa-home"></i> Beranda</div>
             <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i> QR Generator</div>
             <div class="menu-item" onclick="showPage('sika', this)"><i class="fas fa-file-signature"></i> Laporan SIKA</div>
+            <div class="menu-item" onclick="showPage('b3-table', this)"><i class="fas fa-biohazard"></i> Laporan Bahan B3</div>
+            
+            <div class="menu-title" style="margin-top: 25px;">Integrasi</div>
+            <div class="menu-item" onclick="window.location.href='https://keslingk3.github.io/aparujicoba/'" style="color: #2563eb; background: #eff6ff;">
+                <i class="fas fa-fire-extinguisher"></i> Kembali ke APAR
+            </div>
         </div>
         <div class="footer-copy">&copy; 2026 Instalasi K3KL</div>
     </div>
 
     <div class="main-content">
         <div class="top-header">
-            <div class="header-left"><h2 id="page-title">BERANDA</h2><p>Sistem Informasi Pelaporan & Monitoring K3</p></div>
+            <div class="header-left">
+                <div class="header-title-wrapper">
+                    <i class="fas fa-bars toggle-btn" onclick="toggleSidebar()"></i>
+                    <div>
+                        <h2 id="page-title">BERANDA</h2>
+                        <p>Sistem Informasi Pelaporan & Monitoring K3</p>
+                    </div>
+                </div>
+            </div>
             <div class="header-right">
                 <div class="time-badge">
                     <i class="far fa-calendar-alt"></i> <span id="current-date">...</span>
@@ -163,8 +184,6 @@
                     <div class="table-header-tools">
                         <div class="tool-title"><h3><i class="fas fa-list-ul"></i> Daftar Laporan Masuk</h3></div>
                         <div class="tool-actions">
-                            <button class="btn-modern btn-purple" onclick="showB3TablePage()"><i class="fas fa-table"></i> Data Bahan B3</button>
-                            <button class="btn-modern btn-green" onclick="downloadExcelB3()"><i class="fas fa-file-excel"></i> Rekap Bahan B3</button>
                             <button class="btn-modern btn-blue" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
                         </div>
                     </div>
@@ -180,8 +199,11 @@
             <div id="page-b3-table" class="hidden">
                 <div class="table-section">
                     <div class="table-header-tools">
-                        <div class="tool-title"><h3>Detail Inspeksi B3</h3></div>
-                        <button class="btn-modern btn-grey" onclick="showPage('dashboard')"><i class="fas fa-arrow-left"></i> Kembali</button>
+                        <div class="tool-title"><h3><i class="fas fa-biohazard"></i> Detail Inspeksi B3</h3></div>
+                        <div class="tool-actions">
+                            <button class="btn-modern btn-green" onclick="downloadExcelB3()"><i class="fas fa-file-excel"></i> Rekap Bahan B3</button>
+                            <button class="btn-modern btn-blue" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
                     </div>
                     <div class="table-container" style="overflow-x:auto;">
                         <table style="min-width: 2000px;">
@@ -250,6 +272,11 @@
         }
         setInterval(updateTime, 1000); updateTime();
 
+        // --- FUNGSI TOGGLE SIDEBAR ---
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        }
+
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
         const WEB_PELAPOR_URL = "https://keslingk3.github.io/apkpelaporanujicoba/"; 
         let globalData = [];
@@ -271,7 +298,13 @@
             document.getElementById('page-' + pageId).classList.remove('hidden');
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if(btn) btn.classList.add('active');
-            const titles = { 'dashboard': 'BERANDA', 'qr': 'GENERATOR QR CODE', 'sika': 'LAPORAN SIKA (SURAT KERJA AMAN)' };
+            
+            const titles = { 
+                'dashboard': 'BERANDA', 
+                'qr': 'GENERATOR QR CODE', 
+                'sika': 'LAPORAN SIKA (SURAT KERJA AMAN)',
+                'b3-table': 'DATA INSPEKSI B3' 
+            };
             if(titles[pageId]) document.getElementById('page-title').innerText = titles[pageId];
         }
 
@@ -349,15 +382,6 @@
             });
         }
 
-        function showB3TablePage() {
-            document.getElementById('page-dashboard').classList.add('hidden');
-            document.getElementById('page-qr').classList.add('hidden');
-            document.getElementById('page-sika').classList.add('hidden');
-            document.getElementById('page-b3-table').classList.remove('hidden');
-            document.getElementById('page-title').innerText = "DATA INSPEKSI B3";
-            renderB3Table();
-        }
-
         function renderB3Table() {
             const tbody = document.getElementById('b3TableBody');
             tbody.innerHTML = '';
@@ -409,14 +433,11 @@
                     let pdfLaporBtn = `<button class="btn-icon-small bg-act-red" onclick="generatePDF(${i})" title="Cetak Laporan"><i class="fas fa-file-pdf"></i></button>`;
                     let docLink = (row.Doc_B3 && row.Doc_B3.length > 5) ? `<a href="${row.Doc_B3}" target="_blank" class="btn-icon-small bg-act-dark" style="text-decoration:none;" title="Lihat Foto"><i class="fas fa-image"></i></a>` : '';
 
-                    // =======================================================================
-                    // TOMBOL WA ARSIP: TAMPIL JIKA BUKAN TUMPAHAN B3
                     let noWaPelapor = getVal(row, ['No_WA', 'wa', 'WA', 'Nomor_WA', 'No_Hp']) || '-';
                     let waLaporBtn = '';
                     if (row.Jenis_Laporan !== 'Tumpahan B3') {
                         waLaporBtn = `<button class="btn-icon-small" style="background:#10b981;" onclick="kirimWaLaporan('${noWaPelapor}', '${row.Pelapor || 'Anonim'}', '${safeID}', '${row.Jenis_Laporan}')" title="Kirim Arsip Laporan via WhatsApp"><i class="fab fa-whatsapp"></i></button>`;
                     }
-                    // =======================================================================
 
                     tbody.innerHTML += `<tr>
                         <td><strong>${safeID}</strong><br><small style="color:#64748b">${tgl}</small></td>
@@ -427,6 +448,9 @@
                     </tr>`;
                 });
                 document.getElementById('count-new').innerText = cN; document.getElementById('count-process').innerText = cP; document.getElementById('count-done').innerText = cD;
+                
+                // Pastikan tabel B3 juga diisi datanya saat awal loading
+                renderB3Table();
             });
         }
 
@@ -691,9 +715,6 @@
             document.getElementById('print-area').style.display = 'block'; document.getElementById('qr-placeholder').style.display = 'none'; document.getElementById('btnPrintQR').style.display = 'inline-block';
         }
 
-        // =========================================================================================
-        // FUNGSI BARU: CETAK PDF KHUSUS SIKA (FORMAT KOTAK / BORDER)
-        // =========================================================================================
         function generateSikaPDF(index) {
             try {
                 const data = globalSikaData[index];
@@ -910,9 +931,6 @@
             }
         }
 
-        // =========================================================================================
-        // FUNGSI BARU: KIRIM NOTIFIKASI IZIN VIA WHATSAPP (SIKA)
-        // =========================================================================================
         function kirimWaSika(noWa, pemohon, tglMulai) {
             if(!noWa || noWa === '-' || String(noWa).trim() === '') {
                 Swal.fire('Gagal', 'Nomor WhatsApp pemohon tidak tersedia di data.', 'error');
@@ -942,9 +960,6 @@
             });
         }
 
-        // =========================================================================================
-        // FUNGSI BARU: KIRIM ARSIP LAPORAN VIA WHATSAPP (KECELAKAAN KERJA)
-        // =========================================================================================
         function kirimWaLaporan(noWa, pelapor, ticketId, jenisLaporan) {
             if(!noWa || noWa === '-' || String(noWa).trim() === '' || noWa === 'undefined') {
                 Swal.fire('Gagal', 'Nomor WhatsApp pelapor tidak tersedia di data laporan ini.', 'error');
