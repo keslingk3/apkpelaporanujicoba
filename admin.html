@@ -132,7 +132,7 @@
         <div class="menu">
             <div class="menu-title">Main Menu</div>
             <div class="menu-item active" onclick="showPage('dashboard', this)"><i class="fas fa-home"></i> Beranda</div>
-            <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i> QR Generator</div>
+            <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i>Cetak RQ</div>
             <div class="menu-item" onclick="showPage('sika', this)"><i class="fas fa-file-signature"></i> Laporan SIKA</div>
             <div class="menu-item" onclick="showPage('b3-table', this)"><i class="fas fa-biohazard"></i> Laporan Bahan B3</div>
             
@@ -937,9 +937,9 @@
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "normal");
                 doc.text("Nama Pemohon Izin", 18, y); doc.text(":", 55, y); doc.text(String(data['Nama Pemohon'] || '-'), 58, y);
-                doc.text("Nama Pemberi Izin", 108, y); doc.text(":", 140, y); doc.text("..........................................", 143, y); y += 6;
+                doc.text("Nama Pemberi Izin", 108, y); doc.text(":", 140, y); doc.text("", 143, y); y += 6;
                 doc.text("Tanggal", 18, y); doc.text(":", 55, y); doc.text(tglMulai, 58, y);
-                doc.text("Tanggal", 108, y); doc.text(":", 140, y); doc.text("..........................................", 143, y); y += 8;
+                doc.text("Tanggal", 108, y); doc.text(":", 140, y); doc.text("", 143, y); y += 8;
 
                 doc.setFont("helvetica", "bold");
                 doc.text("Tanda Tangan", 60, y, null, null, "center");
@@ -954,7 +954,7 @@
 
                 y += 18;
                 doc.text(`( ${data['Nama Pemohon'] || '...'} )`, 60, y, null, null, "center");
-                doc.text("( .............................................. )", 150, y, null, null, "center");
+                doc.text("", 150, y, null, null, "center");
 
                 let safeID = data['Nama Pemohon'] ? String(data['Nama Pemohon']).replace(/[^a-zA-Z0-9]/g, '_') : 'Pemohon';
                 let safeTgl = tglMulai.replace(/\//g, '-'); 
@@ -1028,3 +1028,4 @@
     </script>
 </body>
 </html>
+
