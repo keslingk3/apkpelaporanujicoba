@@ -326,8 +326,9 @@
     });
 
 
-    // 3. LOGIKA PENGIRIMAN FORM
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec'; 
+    // 3. LOGIKA PENGIRIMAN FORM (FIREBASE)
+    // 🚀 URL Firebase ditambah /LAPORAN_SIKA.json
+    const firebaseUrl = 'https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_SIKA.json'; 
 
     const form = document.forms['sika-form'];
     const btnSubmit = document.getElementById('btnSubmit');
@@ -351,46 +352,62 @@
         const dataURL = signaturePad.toDataURL();
         document.getElementById('signatureData').value = dataURL;
 
-        // Buat FormData dari form
+        // Ekstrak semua data form menjadi Object Javascript
         let formData = new FormData(form);
+        let dataToSave = {};
+        
+        formData.forEach((value, key) => {
+            dataToSave[key] = value;
+        });
 
-        // =========================================================================
-        // INI ADALAH TAMBAHAN KODENYA AGAR MASUK KE DATABASE SIKA (DARI KATA "ACTION")
-        formData.append("action", "input_sika");
-        // =========================================================================
+        // Tambahkan timestamp otomatis
+        dataToSave['timestamp'] = new Date().toISOString();
 
-        fetch(scriptURL, { method: 'POST', body: formData})
-            .then(response => {
-                // REVISI POPUP SUKSES MENJADI LEBIH MENARIK
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Laporan Berhasil!',
-                    html: 'Laporan SIKA Anda telah berhasil dikirim.<br><br><b>Terima kasih sudah menyampaikan laporan.</b>',
-                    confirmButtonColor: '#0056b3',
-                    confirmButtonText: 'Selesai'
-                });
-                
-                form.reset();
-                signaturePad.clear(); 
-                kolomLainnya.classList.add('hidden');
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
-                window.scrollTo(0,0); 
-            })
-            .catch(error => {
-                console.error('Error!', error.message);
-                // REVISI POPUP ERROR MENJADI LEBIH MENARIK
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Pengiriman Gagal!',
-                    text: 'Terjadi kesalahan koneksi. Silakan periksa internet Anda dan coba lagi.',
-                    confirmButtonColor: '#e74c3c',
-                    confirmButtonText: 'Tutup'
-                });
-                
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
+        // Kirim ke Firebase menggunakan format JSON
+        fetch(firebaseUrl, { 
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSave)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Gagal terhubung ke Firebase');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // REVISI POPUP SUKSES MENJADI LEBIH MENARIK
+            Swal.fire({
+                icon: 'success',
+                title: 'Laporan Berhasil!',
+                html: 'Laporan SIKA Anda telah berhasil dikirim ke database.<br><br><b>Terima kasih sudah menyampaikan laporan.</b>',
+                confirmButtonColor: '#0056b3',
+                confirmButtonText: 'Selesai'
             });
+            
+            form.reset();
+            signaturePad.clear(); 
+            kolomLainnya.classList.add('hidden');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
+            window.scrollTo(0,0); 
+        })
+        .catch(error => {
+            console.error('Error!', error.message);
+            // REVISI POPUP ERROR MENJADI LEBIH MENARIK
+            Swal.fire({
+                icon: 'error',
+                title: 'Pengiriman Gagal!',
+                text: 'Terjadi kesalahan koneksi. Silakan periksa internet Anda dan coba lagi.',
+                confirmButtonColor: '#e74c3c',
+                confirmButtonText: 'Tutup'
+            });
+            
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'KIRIM LAPORAN SIKA <i class="fas fa-paper-plane" style="margin-left:10px;"></i>';
+        });
     });
 </script>
 
