@@ -265,7 +265,9 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
+    // 🚀 URL FIREBASE K3KL
+    const FIREBASE_K3_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_K3KL.json"; 
+    
     let historyData = [];
     const urlParams = new URLSearchParams(window.location.search);
     const ruang = urlParams.get('ruang') || "Area Umum";
@@ -453,12 +455,29 @@
 
         Swal.fire({title: 'Sedang Mengirim...', html: 'Mohon tunggu...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
         
-        fetch(SCRIPT_URL, { method: "POST", body: formData })
+        // 🚀 TRANSLATOR MESIN MENUJU FIREBASE
+        const payload = {};
+        formData.forEach((value, key) => { payload[key] = value; });
+        
+        payload.tanggal = payload.waktu_kejadian || payload.waktu_kejadian_tumpahan || payload.tgl_periksa || new Date().toISOString();
+        payload.lokasi = payload.ruangan || payload.unit_kerja || payload.lokasi_tumpahan;
+        payload.petugas = payload.pelapor || payload.nama_pegawai;
+        payload.keterangan = payload.deskripsi || payload.penanganan_b3 || payload.ket_lain;
+        payload.jenisLaporan = payload.jenis;
+        payload.imageData = payload.ttd_image || payload.doc_b3 || '-';
+        payload.status = 'Menunggu';
+
+        fetch(FIREBASE_K3_URL, { 
+            method: "POST", 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload) 
+        })
         .then(r => r.json())
         .then(data => {
-            if(data.result === 'success') { 
-                Swal.fire({icon: 'success', title: 'Berhasil', text: 'Laporan tersimpan! ID: ' + data.ticket}).then(() => location.reload()); 
-            } else { Swal.fire('Gagal', data.error || 'Error server', 'error'); }
+            if(data && data.name) { 
+                let ticketId = data.name.length > 6 ? data.name.substring(data.name.length - 6).toUpperCase() : data.name;
+                Swal.fire({icon: 'success', title: 'Berhasil', text: 'Laporan tersimpan! ID: ' + ticketId}).then(() => location.reload()); 
+            } else { Swal.fire('Gagal', 'Error server', 'error'); }
         }).catch(err => Swal.fire('Error', 'Gagal koneksi', 'error'));
     }
 
@@ -467,13 +486,48 @@
         document.getElementById('history-location-title').innerText = ruang; 
         const list = document.getElementById('history-list'); const loading = document.getElementById('history-loading');
         list.innerHTML = ''; loading.style.display = 'block';
-        fetch(SCRIPT_URL).then(res => res.json()).then(data => {
+        
+        // 🚀 MENGAMBIL DAN MENERJEMAHKAN DARI FIREBASE
+        fetch(FIREBASE_K3_URL).then(res => res.json()).then(firebaseData => {
+            let data = [];
+            if (firebaseData && firebaseData !== 'null') {
+                Object.keys(firebaseData).forEach(key => {
+                    let v = firebaseData[key];
+                    data.push({
+                        Ticket_ID: key.length > 6 ? key.substring(key.length - 6).toUpperCase() : key,
+                        Waktu_Lapor: v.tanggal,
+                        Waktu_Kejadian: v.tanggal,
+                        tgl_periksa: v.tanggal,
+                        Pelapor: v.petugas,
+                        Nama_Pegawai: v.petugas,
+                        Nama_Pemeriksa: v.petugas,
+                        Ruangan: v.lokasi,
+                        Ruangan_Korban: v.lokasi,
+                        Unit_Kerja: v.lokasi,
+                        lokasi_tumpahan: v.lokasi,
+                        Jenis_Laporan: v.jenisLaporan,
+                        Jenis_Detail: v.jenisLaporan,
+                        Deskripsi: v.keterangan,
+                        ket_lain: v.keterangan,
+                        Status: v.status || 'Menunggu',
+                        Doc_B3: v.imageData,
+                        ttd_image: v.imageData,
+                        firebaseKey: key, 
+                        Inv_Kondisi: v.Inv_Kondisi || "",
+                        Inv_Tindakan: v.Inv_Tindakan || "",
+                        Inv_Uraian: v.Inv_Uraian || "",
+                        Inv_Petugas: v.Inv_Petugas || "",
+                        ...v
+                    });
+                });
+            }
+            
             const filteredData = data.filter(row => row.Ruangan === ruang);
             historyData = filteredData; loading.style.display = 'none'; filteredData.reverse(); 
             if(filteredData.length === 0) { list.innerHTML = `<div style="text-align:center; color:#9ca3af; padding:20px;">Belum ada riwayat di <b>${ruang}</b>.</div>`; return; }
             filteredData.forEach((row, index) => {
                 // FILTER: HANYA TAMPILKAN KECELAKAAN KERJA & TUMPAHAN B3 (Hide Laporan Bahan B3)
-                if (row.Jenis_Laporan === 'Laporan Bahan B3') return;
+                if (row.Jenis_Laporan === 'Laporan Bahan B3' || row.Jenis_Laporan === 'Bahan B3') return;
 
                 let statusBadge = row.Status === 'Selesai' ? `<span class="status-badge status-done">SELESAI</span>` : `<span class="status-badge status-wait">MENUNGGU</span>`;
                 
@@ -481,13 +535,15 @@
                 let btnHtml = `<button onclick="generatePDF(${index})" class="btn-mini btn-pdf-user"><i class="fas fa-file-pdf"></i> Laporan</button>`;
                 
                 // TOMBOL PDF INVESTIGASI (HANYA JIKA SELESAI DAN BUKAN TUMPAHAN B3)
-                if (row.Status === 'Selesai' && row.Jenis_Laporan !== 'Tumpahan B3') {
+                if (row.Status === 'Selesai' && row.Jenis_Laporan !== 'Tumpahan B3' && row.Jenis_Laporan !== 'Tumpahan') {
                     btnHtml += `<button onclick="generateInvestigationPDF(${index})" class="btn-mini btn-pdf-inv"><i class="fas fa-file-contract"></i> Investigasi</button>`;
                 }
 
                 let item = `<div class="history-item"><div class="history-header"><span style="font-weight:bold;">${row.Jenis_Laporan}</span>${statusBadge}</div><div style="font-size:0.8rem; color:#6b7280;">${new Date(row.Waktu_Lapor).toLocaleDateString()}</div><div style="font-size:0.85rem; margin-top:5px;">${row.Deskripsi || row.ket_lain || '-'}</div><div style="margin-top:8px;">${btnHtml}</div></div>`;
                 list.innerHTML += item;
             });
+        }).catch(err => {
+            loading.innerHTML = 'Gagal memuat riwayat.';
         });
     }
 
@@ -508,7 +564,7 @@
 
     // --- GENERATE PDF LAPORAN (SAMA PERSIS ADMIN) ---
     function generatePDF(index) {
-        const data = historyData[index]; // Use historyData here
+        const data = historyData[index]; 
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
@@ -643,7 +699,7 @@
 
     // --- GENERATE PDF INVESTIGASI (SAMA PERSIS ADMIN) ---
     function generateInvestigationPDF(index) {
-        const data = historyData[index]; // Use historyData
+        const data = historyData[index]; 
         const { jsPDF } = window.jspdf; const doc = new jsPDF();
         doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center"); doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center"); doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
         let y = 50; doc.setFontSize(10); doc.text("I.    DATA PEGAWAI", 20, y); y += 8;
