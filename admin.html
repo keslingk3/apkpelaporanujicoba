@@ -279,16 +279,17 @@
         }
         setInterval(updateTime, 1000); updateTime();
 
-        // --- FUNGSI TOGGLE SIDEBAR ---
         function toggleSidebar() {
             document.querySelector('.sidebar').classList.toggle('collapsed');
         }
 
+        // 🚀 URL SIKA TETAP GOOGLE SCRIPT, TAPI K3KL PINDAH KE FIREBASE
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
+        const FIREBASE_K3_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_K3KL.json";
+
         const WEB_PELAPOR_URL = "https://keslingk3.github.io/apkpelaporanujicoba/"; 
         let globalData = [];
         
-        // MENGGUNAKAN ACTION GET_SIKA AGAR DATA TIDAK BENTROK
         const SCRIPT_URL_SIKA = SCRIPT_URL + "?action=get_sika"; 
         let globalSikaData = [];
 
@@ -327,7 +328,7 @@
             return ''; 
         };
 
-        // --- FUNGSI MENGAMBIL DATA SIKA ---
+        // --- FUNGSI MENGAMBIL DATA SIKA (TETAP SCRIPT GOOGLE) ---
         function loadSikaData() {
             const tbody = document.getElementById('sikaTableBody');
             tbody.innerHTML = '<tr><td colspan="5" class="loading-state"><i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--primary-blue)"></i><br><br>Menyinkronkan data SIKA...</td></tr>';
@@ -350,7 +351,6 @@
                     let tglMulai = row['Tanggal Mulai'] ? new Date(row['Tanggal Mulai']).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : '-';
                     let tglSelesai = row['Tanggal Selesai'] ? new Date(row['Tanggal Selesai']).toLocaleDateString('id-ID', {day:'numeric', month:'short'}) : '-';
                     
-                    // PEMOTONG FORMAT WAKTU AGAR RAPI (TIDAK ADA TULISAN Z/T)
                     let formatWaktu = (w) => {
                         if (!w) return '-';
                         let strW = String(w);
@@ -392,7 +392,7 @@
         function renderB3Table() {
             const tbody = document.getElementById('b3TableBody');
             tbody.innerHTML = '';
-            const b3Data = globalData.filter(row => row.Jenis_Laporan === 'Laporan Bahan B3');
+            const b3Data = globalData.filter(row => row.Jenis_Laporan === 'Laporan Bahan B3' || row.Jenis_Laporan === 'Bahan B3');
             if(b3Data.length === 0) { tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:20px;">Belum ada data.</td></tr>'; return; }
             b3Data.forEach(row => {
                 let tgl = getVal(row, ['tgl_periksa', 'Waktu_Lapor']); tgl = tgl ? new Date(tgl).toLocaleDateString('id-ID') : '-';
@@ -411,16 +411,59 @@
             });
         }
 
-        // --- LOAD DATA & LOGIC UTAMA ---
+        // --- 🚀 FUNGSI MENGAMBIL DATA DARI FIREBASE (TRANSLATOR MESIN) ---
         function loadData() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '<tr><td colspan="5" class="loading-state"><i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--primary-blue)"></i><br><br>Menyinkronkan data...</td></tr>';
-            fetch(SCRIPT_URL).then(res => res.json()).then(data => {
-                globalData = data; tbody.innerHTML = '';
+            
+            fetch(FIREBASE_K3_URL)
+            .then(res => res.json())
+            .then(firebaseData => {
+                let data = [];
+                if (firebaseData && firebaseData !== 'null') {
+                    Object.keys(firebaseData).forEach(key => {
+                        let v = firebaseData[key];
+                        // Menerjemahkan data Firebase menjadi bahasa Google Sheet
+                        data.push({
+                            Ticket_ID: key.length > 6 ? key.substring(key.length - 6).toUpperCase() : key,
+                            Waktu_Lapor: v.tanggal,
+                            Waktu_Kejadian: v.tanggal,
+                            tgl_periksa: v.tanggal,
+                            Pelapor: v.petugas,
+                            Nama_Pegawai: v.petugas,
+                            Nama_Pemeriksa: v.petugas,
+                            Ruangan: v.lokasi,
+                            Ruangan_Korban: v.lokasi,
+                            Unit_Kerja: v.lokasi,
+                            lokasi_tumpahan: v.lokasi,
+                            Jenis_Laporan: v.jenisLaporan,
+                            Jenis_Detail: v.jenisLaporan,
+                            Deskripsi: v.keterangan,
+                            ket_lain: v.keterangan,
+                            Status: v.status || 'Menunggu',
+                            Doc_B3: v.imageData,
+                            ttd_image: v.imageData,
+                            firebaseKey: key, 
+                            Inv_Kondisi: v.Inv_Kondisi || "",
+                            Inv_Tindakan: v.Inv_Tindakan || "",
+                            Inv_Uraian: v.Inv_Uraian || "",
+                            Inv_Petugas: v.Inv_Petugas || "",
+                            note: v.note || ""
+                        });
+                    });
+                }
+
+                globalData = data; 
+                tbody.innerHTML = '';
                 let cN=0, cP=0, cD=0;
                 data.sort((a,b) => (a.Status==='Selesai'?2:(a.Status==='Menunggu'?0:1)) - (b.Status==='Selesai'?2:(b.Status==='Menunggu'?0:1)));
+                
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8;">Belum ada data laporan masuk.</td></tr>';
+                }
+
                 data.forEach((row, i) => {
-                    if(row.Jenis_Laporan === 'Laporan Bahan B3') return;
+                    if(row.Jenis_Laporan === 'Laporan Bahan B3' || row.Jenis_Laporan === 'Bahan B3') return;
                     if(row.Status==='Menunggu') cN++; else if(row.Status==='Selesai') cD++; else cP++;
                     let safeID = row.Ticket_ID || row.id || 'ID-ERROR';
                     let tgl = row.Waktu_Lapor ? new Date(row.Waktu_Lapor).toLocaleDateString('id-ID') : '-';
@@ -430,19 +473,21 @@
                     let invPdfBtn = ''; 
                     if(row.Status === 'Selesai') {
                         actionBtn = `<button class="btn-icon-small bg-act-dark" title="Sudah Selesai" style="cursor:default;"><i class="fas fa-lock"></i></button>`;
-                        if(row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Tumpahan B3') {
+                        if(row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Bahan B3' && row.Jenis_Laporan !== 'Tumpahan B3' && row.Jenis_Laporan !== 'Tumpahan') {
                             invPdfBtn = `<button class="btn-icon-small bg-act-inv" onclick="generateInvestigationPDF(${i})" title="Cetak Investigasi"><i class="fas fa-file-contract"></i></button>`;
                         }
                     } else {
-                        actionBtn = `<button class="btn-icon-small bg-act-blue" onclick="prosesLaporan('${safeID}', '${row.Pelapor || 'Anonim'}', '${row.Jenis_Laporan}')" title="Tindak Lanjuti"><i class="fas fa-bolt"></i></button>`;
+                        // 🚀 LEMPAR FULL FIREBASE KEY SAAT KLIK TOMBOL PROSES LAPORAN
+                        actionBtn = `<button class="btn-icon-small bg-act-blue" onclick="prosesLaporan('${safeID}', '${row.Pelapor || 'Anonim'}', '${row.Jenis_Laporan}', '${row.firebaseKey}')" title="Tindak Lanjuti"><i class="fas fa-bolt"></i></button>`;
                     }
                     
                     let pdfLaporBtn = `<button class="btn-icon-small bg-act-red" onclick="generatePDF(${i})" title="Cetak Laporan"><i class="fas fa-file-pdf"></i></button>`;
-                    let docLink = (row.Doc_B3 && row.Doc_B3.length > 5) ? `<a href="${row.Doc_B3}" target="_blank" class="btn-icon-small bg-act-dark" style="text-decoration:none;" title="Lihat Foto"><i class="fas fa-image"></i></a>` : '';
+                    
+                    let docLink = (row.Doc_B3 && row.Doc_B3.length > 5 && row.Doc_B3 !== '-') ? `<button class="btn-icon-small bg-act-dark" onclick="Swal.fire({imageUrl: '${row.Doc_B3}', showConfirmButton: false, width:500})" title="Lihat Foto"><i class="fas fa-image"></i></button>` : '';
 
                     let noWaPelapor = getVal(row, ['No_WA', 'wa', 'WA', 'Nomor_WA', 'No_Hp']) || '-';
                     let waLaporBtn = '';
-                    if (row.Jenis_Laporan !== 'Tumpahan B3') {
+                    if (row.Jenis_Laporan !== 'Tumpahan B3' && row.Jenis_Laporan !== 'Tumpahan') {
                         waLaporBtn = `<button class="btn-icon-small" style="background:#10b981;" onclick="kirimWaLaporan('${noWaPelapor}', '${row.Pelapor || 'Anonim'}', '${safeID}', '${row.Jenis_Laporan}')" title="Kirim Arsip Laporan via WhatsApp"><i class="fab fa-whatsapp"></i></button>`;
                     }
 
@@ -456,12 +501,16 @@
                 });
                 document.getElementById('count-new').innerText = cN; document.getElementById('count-process').innerText = cP; document.getElementById('count-done').innerText = cD;
                 
-                // Pastikan tabel B3 juga diisi datanya saat awal loading
                 renderB3Table();
+            })
+            .catch(err => {
+                console.error('Error fetching from Firebase:', err);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#ef4444;">Gagal mengambil data dari Database.</td></tr>';
             });
         }
 
-        function prosesLaporan(ticketId, namaPelapor, jenisLaporan) {
+        // 🚀 MENGIRIM UPDATE STATUS KE FIREBASE
+        function prosesLaporan(ticketId, namaPelapor, jenisLaporan, fbKey) {
             Swal.fire({
                 customClass: 'swal-wide',
                 html: `<div style="text-align:left; padding:20px; background:#f8fafc; border-radius:8px;">
@@ -483,19 +532,33 @@
                 didOpen: () => {
                     const s = document.getElementById('inv-status'); const b = document.getElementById('investigation-block');
                     function toggleInv() {
-                        if (jenisLaporan === 'Tumpahan B3') { b.style.display = 'none'; } 
+                        if (jenisLaporan === 'Tumpahan B3' || jenisLaporan === 'Tumpahan' || jenisLaporan === 'Bahan B3') { b.style.display = 'none'; } 
                         else { b.style.display = (s.value === 'Selesai') ? 'block' : 'none'; }
                     }
                     s.addEventListener('change', toggleInv); toggleInv(); 
                 },
                 preConfirm: () => {
                     const s = document.getElementById('inv-status').value; const note = document.getElementById('inv-note').value;
-                    if(s === 'Selesai' && jenisLaporan !== 'Tumpahan B3' && !document.getElementById('inv_tindakan').value) {
+                    if(s === 'Selesai' && jenisLaporan !== 'Tumpahan B3' && jenisLaporan !== 'Tumpahan' && jenisLaporan !== 'Bahan B3' && !document.getElementById('inv_tindakan').value) {
                         Swal.showValidationMessage('Tindakan Perbaikan WAJIB diisi jika Status Selesai!'); return;
                     }
-                    const fd = new FormData(); fd.append('action','update'); fd.append('id_tiket', ticketId); fd.append('status', s); fd.append('note', note);
-                    ['inv_kondisi','inv_tindakan','inv_uraian','inv_petugas'].forEach(k => fd.append(k, document.getElementById(k).value));
-                    return fetch(SCRIPT_URL, {method:'POST', body:fd});
+                    
+                    const payload = {
+                        status: s,
+                        note: note,
+                        Inv_Kondisi: document.getElementById('inv_kondisi').value,
+                        Inv_Tindakan: document.getElementById('inv_tindakan').value,
+                        Inv_Uraian: document.getElementById('inv_uraian').value,
+                        Inv_Petugas: document.getElementById('inv_petugas').value
+                    };
+
+                    const dbUrl = `https://k3kl-monitor-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_K3KL/${fbKey}.json`;
+                    
+                    return fetch(dbUrl, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
                 }
             }).then(r => { if(r.isConfirmed) { Swal.fire('Tersimpan!','Data berhasil diperbarui','success'); loadData(); }});
         }
@@ -509,7 +572,7 @@
                 if (result.isConfirmed) {
                     const [year, month] = result.value.split('-');
                     const filtered = globalData.filter(row => {
-                        if (row.Jenis_Laporan !== 'Laporan Bahan B3') return false;
+                        if (row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Bahan B3') return false;
                         let d = getVal(row, ['tgl_periksa', 'Waktu_Lapor']); return d && (new Date(d).getFullYear() == year && (new Date(d).getMonth() + 1) == month);
                     });
                     if (filtered.length === 0) { Swal.fire('Data Kosong', 'Tidak ada data bulan ini.', 'info'); return; }
@@ -549,7 +612,7 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
 
-            if (data.Jenis_Laporan === 'Tumpahan B3') {
+            if (data.Jenis_Laporan === 'Tumpahan B3' || data.Jenis_Laporan === 'Tumpahan') {
                 doc.setFontSize(12); doc.setFont("helvetica", "bold");
                 let judul = "LAPORAN TUMPAHAN BAHAN BERBAHAYA DAN BERACUN";
                 if(data.Jenis_Detail && data.Jenis_Detail.toLowerCase().includes("limbah")) {
@@ -713,27 +776,23 @@
             doc.save(`Laporan_Telaah_${safeID}.pdf`);
         }
         
-        // --- REVISI FUNGSI UNTUK GENERATE BANYAK QR CODE SEKALIGUS ---
         function generateQR() {
             const inputVal = document.getElementById('qrRuangan').value;
             if(!inputVal.trim()) { Swal.fire('Error', 'Isi nama ruangan dulu!', 'warning'); return; }
             
-            // Pisahkan teks berdasarkan koma atau enter/baris baru
             const ruanganArray = inputVal.split(/,|\n/).map(r => r.trim()).filter(r => r !== "");
             
             if(ruanganArray.length === 0) { Swal.fire('Error', 'Format ruangan tidak valid!', 'warning'); return; }
 
             const printArea = document.getElementById('print-area');
-            printArea.innerHTML = ''; // Bersihkan cetakan sebelumnya
+            printArea.innerHTML = ''; 
             
             ruanganArray.forEach(ruangan => {
                 const finalLink = `${WEB_PELAPOR_URL}?ruang=${encodeURIComponent(ruangan)}`;
-                // Encode ulang URL agar aman masuk ke API QR Server
                 const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(finalLink)}`;
                 
                 const card = document.createElement('div');
                 card.className = 'qr-card-print';
-                // Styling inline untuk kotak per-QR
                 card.style.cssText = 'text-align:center; padding:20px; border:2px solid #000; width:220px; background: white;';
                 
                 card.innerHTML = `
@@ -745,7 +804,6 @@
                 printArea.appendChild(card);
             });
 
-            // Tampilkan UI hasil cetak
             printArea.style.display = 'flex'; 
             document.getElementById('qr-placeholder').style.display = 'none'; 
             document.getElementById('btnPrintQR').style.display = 'inline-flex';
@@ -759,7 +817,6 @@
 
                 doc.setLineWidth(0.3);
 
-                // BOX 1: HEADER / TITLE
                 let y = 15;
                 doc.rect(15, y, 180, 15); 
                 
@@ -772,7 +829,6 @@
                 
                 y += 15; 
 
-                // BOX 2: JENIS IZIN KERJA
                 let box2Y = y;
                 doc.setFontSize(10);
                 doc.setFont("helvetica", "bold");
@@ -825,7 +881,6 @@
                     return String(w);
                 };
 
-                // BOX 3: MASA BERLAKU
                 let box3Y = y;
                 doc.setFont("helvetica", "bold");
                 doc.text("MASA BERLAKU IZIN", 18, y + 5); doc.text(":", 55, y + 5);
@@ -853,7 +908,6 @@
                 
                 doc.rect(15, box3Y, 180, y - box3Y); 
 
-                // BOX 4: IDENTITAS PEMOHON
                 let box4Y = y;
                 y += 6;
                 doc.setFontSize(10);
@@ -874,7 +928,6 @@
 
                 doc.rect(15, box4Y, 180, y - box4Y); 
 
-                // BOX 5: PETUNJUK PENGISIAN
                 let box5Y = y;
                 y += 6;
                 doc.setFontSize(10);
@@ -890,7 +943,6 @@
 
                 doc.rect(15, box5Y, 180, y - box5Y); 
 
-                // TABEL CHECKLIST
                 const tableData = [
                     ["1", "Pekerjaan yang diusulkan telah diperiksa oleh operator yang bertugas dan semua pekerja yang terlibat memahami deskripsi pekerjaannya", "", "", "6", "Seluruh pekerja telah dimintakan komitmen untuk selalu menggunakan alat pelindung diri selama malakukan pekerjaan", "", ""],
                     ["2", "Pekerjaan yang akan dilakukan telah dibuatkan JSA untuk memastikan setiap bahaya potensial telah teridentifikasi disertai dengan rekomendasi pengendaliannya", "", "", "7", "Seluruh pekerja yang terlibat telah dipastikan merupakan pekerja yang kompeten dalam bidang pekerjaannya dan dalam keadaan sehat jasmani serta rohani", "", ""],
@@ -928,7 +980,6 @@
 
                 if (y > 240) { doc.addPage(); y = 20; }
 
-                // BOX 6: TANDA TANGAN 
                 let box6Y = y;
                 doc.rect(15, box6Y, 180, 45); 
                 doc.line(105, box6Y, 105, box6Y + 45); 
@@ -1028,7 +1079,3 @@
     </script>
 </body>
 </html>
-
-
-
-
