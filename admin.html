@@ -425,6 +425,7 @@
                         let v = firebaseData[key];
                         // Menerjemahkan data Firebase menjadi bahasa Google Sheet
                         data.push({
+                            ...v,
                             Ticket_ID: key.length > 6 ? key.substring(key.length - 6).toUpperCase() : key,
                             Waktu_Lapor: v.tanggal,
                             Waktu_Kejadian: v.tanggal,
