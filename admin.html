@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
     
     <style>
         :root {
@@ -135,6 +135,8 @@
             <div class="menu-item" onclick="showPage('qr', this)"><i class="fas fa-qrcode"></i>Cetak Barcode QR</div>
             <div class="menu-item" onclick="showPage('sika', this)"><i class="fas fa-file-signature"></i> Laporan SIKA</div>
             <div class="menu-item" onclick="showPage('b3-table', this)"><i class="fas fa-biohazard"></i> Laporan Bahan B3</div>
+<div class="menu-item" onclick="showPage('kudr', this)"><i class="fas fa-wind"></i> Laporan KUDR</div>
+<div class="menu-item" onclick="showPage('ruang-terbuka', this)"><i class="fas fa-tree"></i> Ruang Terbuka (RTH)</div>
             
             <div class="menu-title" style="margin-top: 25px;">Integrasi</div>
             <div class="menu-item" onclick="window.location.href='https://keslingk3.github.io/monitoringaparversiultimate/'" style="color: #2563eb; background: #eff6ff;">
@@ -212,9 +214,61 @@
                             <button class="btn-modern btn-blue" onclick="loadData()"><i class="fas fa-sync-alt"></i> Refresh</button>
                         </div>
                     </div>
+<div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                                <select id="filterBulanB3" onchange="renderB3Table()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #1e293b;">
+                                    <option value="Semua">Semua Bulan</option>
+                                    <option value="01">Januari</option>
+                                    <option value="02">Februari</option>
+                                    <option value="03">Maret</option>
+                                    <option value="04">April</option>
+                                    <option value="05">Mei</option>
+                                    <option value="06">Juni</option>
+                                    <option value="07">Juli</option>
+                                    <option value="08">Agustus</option>
+                                    <option value="09">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+
+                                <select id="filterTahunB3" onchange="renderB3Table()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #1e293b;">
+                                    <option value="Semua">Semua Tahun</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
                     <div class="table-container" style="overflow-x:auto;">
                         <table style="min-width: 2000px;">
-                            <thead style="background:#f1f5f9;"><tr><th>Tgl Periksa</th><th>Pemeriksa</th><th>Ruangan</th><th>Jml B3 Medis</th><th>Jml B3 Lab</th><th>Jml B3 RT</th><th>Simbol</th><th>Kondisi</th><th>Label</th><th>Terpisah</th><th>MSDS</th><th>SpillKit</th><th>Expired</th><th>B3 Medis</th><th>B3 Lab</th><th>B3 RT</th><th>Foto</th><th>Keterangan</th></tr></thead>
+                            <thead style="background:#f1f5f9; text-align: center;">
+                                <tr>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">No</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Tgl & Petugas</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Nama Ruangan</th>
+                                    <th colspan="3" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Jumlah B3/Jenis di Ruangan</th>
+                                    <th colspan="2" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Tempat Simpan</th>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">Total B3<br>Tersimpan</th>
+                                    <th colspan="8" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Jumlah B3 yang Sesuai Persyaratan</th>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">Persentase</th>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">Foto</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Keterangan</th>
+                                </tr>
+                                <tr style="background:#f8fafc;">
+                                    <th style="text-align: center; font-size: 0.75rem;">Kimia/Lab</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Medis/Obat</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">B3 RT</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Lemari</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Wadah</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Simbol</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Kondisi</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Tidak Exp</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Label</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Terpisah</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">MSDS</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Spill Kit</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Jumlah</th>
+                                </tr>
+                            </thead>
                             <tbody id="b3TableBody"></tbody>
                         </table>
                     </div>
@@ -262,15 +316,131 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div> </div> </div> <div id="page-kudr" class="hidden">
+                <div class="table-section">
+                    <div class="table-header-tools">
+                        <div class="tool-title"><h3><i class="fas fa-wind"></i> Tabel Pengukuran Kualitas Udara (KUDR)</h3></div>
+                        <div class="tool-actions">
+                            <button class="btn-modern btn-green" onclick="downloadExcelKudr()"><i class="fas fa-file-excel"></i> Rekap KUDR</button>
+                            <button class="btn-modern btn-blue" onclick="loadKudrData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                        <select id="filterBulanKudr" onchange="renderKudrTable()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #1e293b; outline:none;">
+                            <option value="Semua">Semua Bulan</option>
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                        </select>
+                        <select id="filterTahunKudr" onchange="renderKudrTable()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #1e293b; outline:none;">
+                            <option value="Semua">Semua Tahun</option>
+                            <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container" style="overflow-x:auto;">
+                        <table style="min-width: 1800px;">
+                            <thead style="background:#f1f5f9; text-align: center;">
+                                <tr>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">No</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Tanggal</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Nama Ruangan</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Nomor Kamar</th>
+                                    <th rowspan="2" style="vertical-align: middle; text-align: center;">Jml Tempat<br>Tidur</th>
+                                    <th colspan="6" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Data Kualitas Lingkungan</th>
+                                    <th colspan="4" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Kamar Mandi Standar Aksesbilitas</th>
+                                    <th colspan="3" style="text-align: center; border-bottom: 1px solid #cbd5e1;">Volume Ruangan</th>
+                                    <th rowspan="2" style="vertical-align: middle;">Keterangan</th>
+                                </tr>
+                                <tr style="background:#f8fafc;">
+                                    <th style="text-align: center; font-size: 0.75rem;">Pertukaran Udara<br>(6 ACH)</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Pencahayaan<br>250 Lux</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Pencahayaan<br>50 Lux</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Suhu Ruangan<br>(20-26 °C)</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Kelembaban<br>(40 - 60%)</th>
+                                    <th style="text-align: center; font-size: 0.75rem; color: #d97706;">Kebisingan<br>(dBA)</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Masuk<br>Kursi Roda</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Handrail</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Pintu Bukaan<br>Keluar</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">Lantai<br>Tidak Licin</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">P</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">L</th>
+                                    <th style="text-align: center; font-size: 0.75rem;">T</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kudrTableBody"></tbody>
+                        </table>
+
+</div> </div> </div> <div id="page-ruang-terbuka" class="hidden">
+                <div class="table-section">
+                    <div class="table-header-tools">
+                        <div class="tool-title"><h3><i class="fas fa-tree"></i> Rekapitulasi Pemantauan RTH</h3></div>
+                        <div class="tool-actions">
+                            <button class="btn-modern btn-green" onclick="downloadExcelRT()"><i class="fas fa-file-excel"></i> Rekap Excel</button>
+                            <button class="btn-modern btn-blue" onclick="loadRTData()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+                        <select id="filterBulanRT" onchange="renderRTTable()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #1e293b; outline:none;">
+                            <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+                            <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+                            <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+                            <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                        </select>
+                        <select id="filterTahunRT" onchange="renderRTTable()" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #1e293b; outline:none;">
+                            <option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option>
+                        </select>
+                    </div>
+
+                    <div class="table-container" style="overflow-x:auto;">
+                        <table style="min-width: 2500px; border: 1px solid #cbd5e1;">
+                            <thead style="background:#f1f5f9; text-align: center;">
+                                <tr>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center; border: 1px solid #cbd5e1;">No</th>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center; border: 1px solid #cbd5e1;">Area RTH</th>
+                                   <th colspan="20" style="text-align: center; border: 1px solid #cbd5e1;">Jenis Pemantauan</th>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center; border: 1px solid #cbd5e1;">Kategori</th>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center; border: 1px solid #cbd5e1;">Dokumentasi</th>
+                                    <th rowspan="3" style="vertical-align: middle; text-align: center; border: 1px solid #cbd5e1;">Keterangan</th>
+                                </tr>
+                                <tr style="background:#f8fafc;">
+                                    <th colspan="5" style="text-align: center; border: 1px solid #cbd5e1;">Minggu 1</th>
+                                    <th colspan="5" style="text-align: center; border: 1px solid #cbd5e1;">Minggu 2</th>
+                                    <th colspan="5" style="text-align: center; border: 1px solid #cbd5e1;">Minggu 3</th>
+                                    <th colspan="5" style="text-align: center; border: 1px solid #cbd5e1;">Minggu 4</th>
+                                </tr>
+                                <tr style="background:#ffffff;">
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Bersih dan<br>Bebas Sampah</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Rapih<br>dan Bebas Gulma</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Sehat<br>dan Terpelihara</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Pemotongan<br>Rumput Rutin</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Perapihan<br>Pohon Tinggi</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Bersih dan<br>Bebas Sampah</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Rapih<br>dan Bebas Gulma</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Sehat<br>dan Terpelihara</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Pemotongan<br>Rumput Rutin</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Perapihan<br>Pohon Tinggi</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Bersih dan<br>Bebas Sampah</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Rapih<br>dan Bebas Gulma</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Sehat<br>dan Terpelihara</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Pemotongan<br>Rumput Rutin</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Perapihan<br>Pohon Tinggi</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Bersih dan<br>Bebas Sampah</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Rapih<br>dan Bebas Gulma</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Tanaman Sehat<br>dan Terpelihara</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Pemotongan<br>Rumput Rutin</th>
+                                    <th style="text-align: center; font-size: 0.7rem; border: 1px solid #cbd5e1;">Perapihan<br>Pohon Tinggi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rtTableBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
-
-    <script>
-        // --- UTILS & UI ---
+            </div> </div> <script>        // --- UTILS & UI ---
         function updateTime() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -283,9 +453,162 @@
             document.querySelector('.sidebar').classList.toggle('collapsed');
         }
 
-        // 🚀 URL SIKA TETAP GOOGLE SCRIPT, TAPI K3KL PINDAH KE FIREBASE
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyimfXBor2cf9omlSWMu-sFGOXo4gOeBEtJc5HGajVXCPNS6j1qbIKPFIqpNzP9kMUW/exec"; 
         const FIREBASE_K3_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_K3KL.json";
+        const FIREBASE_KUDR_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/KUDR.json";
+
+        // ========================================================
+        // 🚀 MESIN PENARIK DAN PENGOLAH DATA KUDR
+        // ========================================================
+        let globalKudrData = [];
+
+        function loadKudrData() {
+            const tbody = document.getElementById('kudrTableBody');
+            if(tbody) tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:#4f46e5;"></i><br><br>Memuat Data KUDR dari Database...</td></tr>';
+            
+            fetch(FIREBASE_KUDR_URL)
+            .then(res => res.json())
+            .then(data => {
+                globalKudrData = [];
+                if(data && data !== 'null') {
+                    Object.keys(data).forEach(key => { 
+                        globalKudrData.push({ id: key, ...data[key] }); 
+                    });
+                }
+                
+                globalKudrData.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+                renderKudrTable();
+            }).catch(e => {
+                console.log('Error Load KUDR:', e);
+                if(tbody) tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; color:red; padding:20px;">Gagal memuat data. Pastikan ada koneksi internet.</td></tr>';
+            });
+        }
+
+        function renderKudrTable() {
+            const tbody = document.getElementById('kudrTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            const elBulan = document.getElementById('filterBulanKudr');
+            const elTahun = document.getElementById('filterTahunKudr');
+            const fBulan = elBulan ? elBulan.value : 'Semua';
+            const fTahun = elTahun ? elTahun.value : 'Semua';
+
+            const filtered = globalKudrData.filter(row => {
+                if (!row.tanggal) return false;
+                let dateObj = new Date(row.tanggal);
+                let rBulan = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let rTahun = String(dateObj.getFullYear());
+                return (fBulan === 'Semua' || rBulan === fBulan) && (fTahun === 'Semua' || rTahun === fTahun);
+            });
+
+            if(filtered.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="19" style="text-align:center; padding:30px; color:#94a3b8; font-weight:bold;">Belum ada data Pengukuran KUDR pada periode ini.</td></tr>'; 
+                return; 
+            }
+
+            filtered.forEach((row, index) => {
+                let tgl = row.tanggal ? new Date(row.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year:'numeric'}) : '-';
+                tbody.innerHTML += `<tr>
+                    <td align="center"><strong>${index + 1}</strong></td>
+                    <td style="white-space: nowrap;"><strong>${tgl}</strong></td>
+                    <td><strong>${row.lokasi || '-'}</strong></td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center" style="background:#eff6ff;"><strong style="color:#1d4ed8; font-size:1.1rem;">${row.ach_ruangan || '-'}</strong></td>
+                    <td align="center">${row.pencahayaan || '-'}</td>
+                    <td align="center">-</td>
+                    <td align="center">${row.suhu || '-'}</td>
+                    <td align="center">${row.kelembaban || '-'}</td>
+                    <td align="center" style="color: #d97706; font-weight:bold;">${row.kebisingan || '-'}</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td align="center">-</td>
+                    <td><small style="color:#475569;">${row.keterangan || '-'}</small></td>
+                </tr>`;
+            });
+        }
+
+        function downloadExcelKudr() {
+            Swal.fire({
+                title: '<div style="background: #e0e7ff; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;"><i class="fas fa-wind" style="color: #4f46e5; font-size: 2.2rem;"></i></div>Rekap KUDR',
+                html: `
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 20px;">Tentukan periode laporan KUDR yang ingin diunduh.</p>
+                    <div style="position: relative; width: 85%; margin: 0 auto;">
+                        <i class="fas fa-calendar-alt" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem;"></i>
+                        <input type="month" id="kudr-month" style="width: 100%; padding: 12px 15px 12px 45px; font-size: 1rem; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 10px; outline: none;">
+                    </div>
+                `,
+                showCancelButton: true, confirmButtonColor: '#4f46e5', cancelButtonColor: '#f1f5f9',
+                confirmButtonText: '<i class="fas fa-download"></i> Unduh Excel', cancelButtonText: '<span style="color:#64748b; font-weight:bold;">Batal</span>', reverseButtons: true,
+                preConfirm: () => { const val = document.getElementById('kudr-month').value; if (!val) { Swal.showValidationMessage('Pilih bulan periode!'); return false; } return val; }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const [year, month] = result.value.split('-');
+                    const filtered = globalKudrData.filter(row => {
+                        if(!row.tanggal) return false; let d = new Date(row.tanggal);
+                        return d.getFullYear() == year && (d.getMonth() + 1) == month;
+                    });
+                    
+                    if (filtered.length === 0) { Swal.fire('Data Kosong', 'Tidak ada data KUDR bulan ini.', 'info'); return; }
+
+                    const titleRow1 = ["DATA PENGUKURAN KUALITAS UDARA RUANG TAHUN " + year];
+                    const titleRow2 = [];
+                    
+                    const headerTop = ["No", "Tanggal", "Nama Ruangan", "Nomor Kamar", "Jumlah Tempat Tidur", "Data Kualitas Lingkungan", "", "", "", "", "", "Kamar Mandi Standar Aksesbilitas", "", "", "", "Volume Ruangan", "", "", "Keterangan"];
+                    const headerBottom = ["", "", "", "", "", "Pertukaran Udara (6 ACH)", "Pencahayaan (250 Lux)", "Pencahayaan (50 Lux)", "Suhu Ruangan (20-26 C)", "Kelembaban (40-60%)", "Kebisingan", "Masuk Kursi Roda", "Handrail", "Pintu Bukaan Keluar", "Lantai tidak licin", "P", "L", "T", ""];
+
+                    const dataRows = filtered.map((item, index) => {
+                        let tgl = item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-';
+                        return [
+                            index + 1, tgl, item.lokasi || '-', "-", "-", 
+                            parseFloat(item.ach_ruangan) || '-', parseFloat(item.pencahayaan) || '-', "-", parseFloat(item.suhu) || '-', parseFloat(item.kelembaban) || '-', parseFloat(item.kebisingan) || '-',
+                            "-", "-", "-", "-", 
+                            "-", "-", "-", item.keterangan || '-'
+                        ];
+                    });
+
+                    const wsData = [titleRow1, titleRow2, headerTop, headerBottom, ...dataRows];
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    const borderStyle = { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } };
+                    for (let i in ws) {
+                        if (i[0] === '!') continue;
+                        let cellRef = XLSX.utils.decode_cell(i);
+                        if (!ws[i].s) ws[i].s = {};
+                        if (cellRef.r >= 2) { 
+                            ws[i].s.border = borderStyle; 
+                            ws[i].s.alignment = { vertical: "center", horizontal: "center", wrapText: true }; 
+                        }
+                        if (cellRef.r === 2 || cellRef.r === 3) {
+                            ws[i].s.font = { bold: true }; 
+                        }
+                        if (cellRef.r === 0) { ws[i].s.font = { bold: true, sz: 12 }; ws[i].s.alignment = { horizontal: "left" }; }
+                    }
+
+                    if(!ws['!merges']) ws['!merges'] = [];
+                    ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 18 } });
+                    ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 3, c: 0 } });
+                    ws['!merges'].push({ s: { r: 2, c: 1 }, e: { r: 3, c: 1 } });
+                    ws['!merges'].push({ s: { r: 2, c: 2 }, e: { r: 3, c: 2 } });
+                    ws['!merges'].push({ s: { r: 2, c: 3 }, e: { r: 3, c: 3 } });
+                    ws['!merges'].push({ s: { r: 2, c: 4 }, e: { r: 3, c: 4 } });
+                    ws['!merges'].push({ s: { r: 2, c: 5 }, e: { r: 2, c: 10 } });
+                    ws['!merges'].push({ s: { r: 2, c: 11 }, e: { r: 2, c: 14 } });
+                    ws['!merges'].push({ s: { r: 2, c: 15 }, e: { r: 2, c: 17 } });
+                    ws['!merges'].push({ s: { r: 2, c: 18 }, e: { r: 3, c: 18 } });
+
+                    ws['!cols'] = [ {wch: 5}, {wch: 12}, {wch: 25}, {wch: 10}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 10}, {wch: 8}, {wch: 8}, {wch: 8}, {wch: 30} ];
+
+                    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap KUDR");
+                    XLSX.writeFile(wb, `Laporan_KUDR_${result.value}.xlsx`);
+                }
+            });
+        }
 
         const WEB_PELAPOR_URL = "https://keslingk3.github.io/apkpelaporanujicoba/"; 
         let globalData = [];
@@ -296,6 +619,7 @@
         document.addEventListener("DOMContentLoaded", () => { 
             loadData(); 
             loadSikaData();
+loadKudrData();
         });
 
         function showPage(pageId, btn) {
@@ -303,6 +627,9 @@
             document.getElementById('page-qr').classList.add('hidden');
             document.getElementById('page-b3-table').classList.add('hidden');
             document.getElementById('page-sika').classList.add('hidden');
+            document.getElementById('page-kudr').classList.add('hidden');
+document.getElementById('page-ruang-terbuka').classList.add('hidden');
+            
             document.getElementById('page-' + pageId).classList.remove('hidden');
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             if(btn) btn.classList.add('active');
@@ -311,9 +638,19 @@
                 'dashboard': 'BERANDA', 
                 'qr': 'GENERATOR QR CODE', 
                 'sika': 'LAPORAN SIKA (SURAT KERJA AMAN)',
-                'b3-table': 'DATA INSPEKSI B3' 
+                'b3-table': 'DATA INSPEKSI B3',
+                'kudr': 'DATA PENGUKURAN KUDR',
+'ruang-terbuka': 'REKAPITULASI RUANG TERBUKA HIJAU (RTH)'
             };
             if(titles[pageId]) document.getElementById('page-title').innerText = titles[pageId];
+
+            // 🚀 TRIGGER OTOMATIS: Tarik data saat menu diklik!
+            if (pageId === 'kudr') {
+                loadKudrData();
+            }
+            if (pageId === 'ruang-terbuka') {
+                loadRTData();
+            }
         }
 
         const getVal = (item, keys) => {
@@ -392,22 +729,102 @@
         function renderB3Table() {
             const tbody = document.getElementById('b3TableBody');
             tbody.innerHTML = '';
-            const b3Data = globalData.filter(row => row.Jenis_Laporan === 'Laporan Bahan B3' || row.Jenis_Laporan === 'Bahan B3');
-            if(b3Data.length === 0) { tbody.innerHTML = '<tr><td colspan="18" style="text-align:center; padding:20px;">Belum ada data.</td></tr>'; return; }
-            b3Data.forEach(row => {
-                let tgl = getVal(row, ['tgl_periksa', 'Waktu_Lapor']); tgl = tgl ? new Date(tgl).toLocaleDateString('id-ID') : '-';
+            
+            // 1. AMBIL NILAI DARI DROPDOWN FILTER
+            const filterBulan = document.getElementById('filterBulanB3') ? document.getElementById('filterBulanB3').value : 'Semua';
+            const filterTahun = document.getElementById('filterTahunB3') ? document.getElementById('filterTahunB3').value : 'Semua';
+
+            // 2. FILTER DATA B3 BERDASARKAN JENIS DAN BULAN/TAHUN
+            const b3Data = globalData.filter(row => {
+                // Pastikan hanya data B3
+                if (row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Bahan B3') return false;
+                
+                // Ambil tanggal
+                let tglRaw = getVal(row, ['tgl_periksa', 'Waktu_Lapor']);
+                if (!tglRaw) return false;
+
+                // Konversi tanggal untuk pencocokan filter
+                let dateObj = new Date(tglRaw);
+                let rowBulan = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let rowTahun = String(dateObj.getFullYear());
+
+                let matchBulan = (filterBulan === 'Semua') || (rowBulan === filterBulan);
+                let matchTahun = (filterTahun === 'Semua') || (rowTahun === filterTahun);
+
+                return matchBulan && matchTahun;
+            });
+            
+            if(b3Data.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="20" style="text-align:center; padding:20px; color:#94a3b8;">Belum ada data Inspeksi B3 pada periode ini.</td></tr>'; 
+                return; 
+            }
+            
+            b3Data.forEach((row, index) => {
+                let tgl = getVal(row, ['tgl_periksa', 'Waktu_Lapor']); 
+                tgl = tgl ? new Date(tgl).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year:'numeric'}) : '-';
                 let pelapor = getVal(row, ['Pelapor', 'Nama_Pemeriksa']) || '-';
                 let ruangan = getVal(row, ['Ruangan', 'Unit_Kerja']) || '-';
-                let jMedis = getVal(row, ['jml_b3_medis', 'Jml_B3_Medis']) || '0';
-                let jLab = getVal(row, ['jml_b3_lab', 'Jml_B3_Lab']) || '0';
-                let jRT = getVal(row, ['jml_b3_rt', 'Jml_B3_RT']) || '0';
-                const check = (keys) => {
-                    let val = getVal(row, keys);
-                    return (val && val !== "Tidak" && val !== "False") ? '<i class="fas fa-check" style="color:#10b981;"></i>' : '<i class="fas fa-times" style="color:#ef4444; opacity:0.3;"></i>';
-                };
-                let imgHtml = '-'; let docRaw = getVal(row, ['doc_b3', 'Doc_B3']);
-                if (docRaw && docRaw.includes('data:image')) { imgHtml = `<img src="${docRaw}" style="width:40px; height:40px; border-radius:4px; cursor:pointer;" onclick="Swal.fire({imageUrl: '${docRaw}', showConfirmButton: false, width:500})">`; }
-                tbody.innerHTML += `<tr><td>${tgl}</td><td>${pelapor}</td><td>${ruangan}</td><td align="center">${jMedis}</td><td align="center">${jLab}</td><td align="center">${jRT}</td><td align="center">${check(['cek_simbol'])}</td><td align="center">${check(['cek_kondisi'])}</td><td align="center">${check(['cek_label'])}</td><td align="center">${check(['cek_pisah'])}</td><td align="center">${check(['cek_msds'])}</td><td align="center">${check(['cek_spillkit'])}</td><td align="center">${check(['cek_expired'])}</td><td><small>${getVal(row, ['list_b3_medis'])}</small></td><td><small>${getVal(row, ['list_b3_lab'])}</small></td><td><small>${getVal(row, ['list_b3_rt'])}</small></td><td align="center">${imgHtml}</td><td><small>${getVal(row, ['ket_lain'])}</small></td></tr>`;
+                
+                // Ambil Nilai Kategori
+                let lab = parseFloat(getVal(row, ['jml_b3_lab', 'Jml_B3_Lab']) || 0);
+                let medis = parseFloat(getVal(row, ['jml_b3_medis', 'Jml_B3_Medis']) || 0);
+                let rt = parseFloat(getVal(row, ['jml_b3_rt', 'Jml_B3_RT']) || 0);
+                let totalB3 = lab + medis + rt;
+
+                // Ambil Nilai Persyaratan 
+                let simbol = parseFloat(getVal(row, ['cek_simbol', 'Cek_Simbol']) || 0);
+                let kondisi = parseFloat(getVal(row, ['cek_kondisi', 'Cek_Kondisi']) || 0);
+                let expired = parseFloat(getVal(row, ['cek_expired', 'Cek_Expired']) || 0);
+                let label = parseFloat(getVal(row, ['cek_label', 'Cek_Label']) || 0);
+                let pisah = parseFloat(getVal(row, ['cek_pisah', 'Cek_Pisah']) || 0);
+                let msds = parseFloat(getVal(row, ['cek_msds', 'Cek_MSDS']) || 0);
+                let spillkit = parseFloat(getVal(row, ['cek_spillkit', 'Cek_Spillkit']) || 0);
+
+                // Hitung Rata-rata dan Persentase
+                let rataJumlah = (simbol + kondisi + expired + label + pisah + msds + spillkit) / 7;
+                let persentase = 0;
+                let persentaseHtml = '<span class="badge badge-new" style="font-size:11px;">#DIV/0!</span>';
+                
+                if (totalB3 > 0) {
+                    persentase = (rataJumlah / totalB3) * 100;
+                    if(persentase > 100) persentase = 100;
+                    let pColor = persentase === 100 ? 'badge-done' : (persentase >= 50 ? 'badge-process' : 'badge-new');
+                    persentaseHtml = `<span class="badge ${pColor}" style="font-size:11px;">${persentase.toFixed(2)}%</span>`;
+                }
+
+                // Foto Dokumentasi
+                let imgHtml = '-'; let docRaw = getVal(row, ['doc_b3', 'Doc_B3', 'imageData']);
+                if (docRaw && docRaw.includes('data:image')) { 
+                    imgHtml = `<img src="${docRaw}" style="width:40px; height:40px; border-radius:6px; cursor:pointer; border:1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="Swal.fire({imageUrl: '${docRaw}', showConfirmButton: false, width:500})">`; 
+                }
+                
+                tbody.innerHTML += `<tr>
+                    <td align="center"><strong>${index + 1}</strong></td>
+                    <td style="white-space: nowrap;"><strong>${tgl}</strong><br><small style="color:#64748b"><i class="fas fa-user"></i> ${pelapor}</small></td>
+                    <td><strong>${ruangan}</strong></td>
+                    
+                    <td align="center" style="background:#f8fafc;">${lab}</td>
+                    <td align="center" style="background:#f8fafc;">${medis}</td>
+                    <td align="center" style="background:#f8fafc;">${rt}</td>
+                    
+                    <td align="center"><i class="fas fa-check-square" style="color:#2563eb;"></i></td>
+                    <td align="center"><i class="far fa-square" style="color:#cbd5e1;"></i></td>
+                    
+                    <td align="center" style="background:#eff6ff;"><strong style="color:#1d4ed8; font-size:1.1rem;">${totalB3}</strong></td>
+                    
+                    <td align="center">${simbol}</td>
+                    <td align="center">${kondisi}</td>
+                    <td align="center">${expired}</td>
+                    <td align="center">${label}</td>
+                    <td align="center">${pisah}</td>
+                    <td align="center">${msds}</td>
+                    <td align="center">${spillkit}</td>
+                    <td align="center" style="background:#f8fafc;"><strong>${rataJumlah.toFixed(2)}</strong></td>
+                    
+                    <td align="center">${persentaseHtml}</td>
+                    <td align="center">${imgHtml}</td>
+                    <td><small style="color:#475569;">${getVal(row, ['ket_lain', 'Keterangan']) || '-'}</small></td>
+                </tr>`;
             });
         }
 
@@ -566,43 +983,183 @@
 
         function downloadExcelB3() {
             Swal.fire({
-                title: 'Pilih Periode', html: `<input type="month" id="b3-month" class="swal2-input" style="width:80%">`,
-                showCancelButton: true, confirmButtonText: 'Download',
-                preConfirm: () => { const val = document.getElementById('b3-month').value; if (!val) Swal.showValidationMessage('Pilih bulan!'); return val; }
+                title: '<div style="background: #ecfdf5; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;"><i class="fas fa-file-excel" style="color: #10b981; font-size: 2.2rem;"></i></div>Rekap Bahan B3',
+                html: `
+                    <p style="font-size: 0.9rem; color: #64748b; margin-top: 0; margin-bottom: 20px;">Silakan tentukan bulan dan tahun periode laporan yang ingin diunduh.</p>
+                    <div style="position: relative; width: 85%; margin: 0 auto;">
+                        <i class="fas fa-calendar-alt" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem;"></i>
+                        <input type="month" id="b3-month" style="width: 100%; box-sizing: border-box; padding: 12px 15px 12px 45px; font-size: 1rem; font-weight: bold; color: #334155; border: 2px solid #cbd5e1; border-radius: 10px; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.2)';" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';">
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonColor: '#10b981', // Warna hijau Excel
+                cancelButtonColor: '#f1f5f9',  // Warna abu-abu lembut
+                confirmButtonText: '<i class="fas fa-download"></i> Unduh Excel',
+                cancelButtonText: '<span style="color: #64748b; font-weight: bold;">Batal</span>',
+                reverseButtons: true, // Posisi tombol konfirmasi di kanan
+                background: '#ffffff',
+                customClass: {
+                    popup: 'swal-wide-custom'
+                },
+                preConfirm: () => { 
+                    const val = document.getElementById('b3-month').value; 
+                    if (!val) {
+                        Swal.showValidationMessage('<i class="fas fa-exclamation-circle"></i> Bulan periode wajib dipilih!');
+                        return false;
+                    }
+                    return val; 
+                }
             }).then((result) => {
+// ... (Kodingan di bawahnya biarkan tetap sama) ...
                 if (result.isConfirmed) {
                     const [year, month] = result.value.split('-');
                     const filtered = globalData.filter(row => {
                         if (row.Jenis_Laporan !== 'Laporan Bahan B3' && row.Jenis_Laporan !== 'Bahan B3') return false;
                         let d = getVal(row, ['tgl_periksa', 'Waktu_Lapor']); return d && (new Date(d).getFullYear() == year && (new Date(d).getMonth() + 1) == month);
                     });
+                    
                     if (filtered.length === 0) { Swal.fire('Data Kosong', 'Tidak ada data bulan ini.', 'info'); return; }
 
-                    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-                    const monthName = monthNames[parseInt(month) - 1];
-                    const titleRow = ["LAPORAN BAHAN BERBAHAYA BERACUN"];
-                    const subTitleRow = [`Periode: ${monthName} ${year} - RS dr. H. MARZOEKI MAHDI BOGOR`];
-                    const emptyRow = [""];
-                    const tableHeaders = ["Tgl Periksa", "Pemeriksa", "Ruangan", "Jml Medis", "Jml Lab", "Jml RT", "Simbol", "Kondisi", "Label", "Terpisah", "MSDS", "SpillKit", "Expired", "List B3 Medis", "List B3 Lab", "List B3 RT", "Dokumentasi", "Keterangan"];
+                    // 1. STRUKTUR BARIS HEADER SESUAI GAMBAR EXCEL
+                    const titleRow1 = ["Persentase B3 sesuai standar kesehatan dan tataletak rumah sakit"];
+                    const titleRow2 = []; // Baris kosong untuk jarak
+                    
+                    const headerTop = [
+                        "No", "Nama Ruangan", 
+                        "Jumlah B3/Jenis di ruang perawatan", "", "", 
+                        "Tempat Penyimpanan B3", "", 
+                        "Total B3 yang tersimpan/Jenis", 
+                        "Jumlah B3 yang Sesuai Persyaratan", "", "", "", "", "", "", "", 
+                        "Persentase", "Keterangan"
+                    ];
+                    
+                    const headerBottom = [
+                        "", "", 
+                        "Bahan Kimia/Laboratorium", "Medis/Obat-Obatan", "B3 Rumah Tangga", 
+                        "Lemari", "Wadah", 
+                        "", 
+                        "Kemasan Terdapat Simbol B3", "Kondisi Kemasan Masih Bagus", "B3 masih dalam kondisi baik (Tidak Exp)", 
+                        "Identifikasi Jenis dan Jumlah B3", "Penyimpanan Terpisah dari Bahan Lainnya", "MSDS", "Spill Kit", "Jumlah", 
+                        "", ""
+                    ];
 
-                    const dataRows = filtered.map(item => [
-                        getVal(item, ['tgl_periksa', 'Waktu_Lapor']), getVal(item, ['Pelapor', 'Nama_Pemeriksa']), getVal(item, ['Ruangan', 'Unit_Kerja']),
-                        getVal(item, ['jml_b3_medis', 'Jml_B3_Medis']) || '0', getVal(item, ['jml_b3_lab', 'Jml_B3_Lab']) || '0', getVal(item, ['jml_b3_rt', 'Jml_B3_RT']) || '0',
-                        getVal(item, ['cek_simbol', 'Cek_Simbol']) || 'Tidak', getVal(item, ['cek_kondisi', 'Cek_Kondisi']) || 'Tidak', getVal(item, ['cek_label', 'Cek_Label']) || 'Tidak', getVal(item, ['cek_pisah', 'Cek_Pisah']) || 'Tidak',
-                        getVal(item, ['cek_msds', 'Cek_MSDS']) || 'Tidak', getVal(item, ['cek_spillkit', 'Cek_Spillkit']) || 'Tidak', getVal(item, ['cek_expired', 'Cek_Expired']) || 'Tidak',
-                        getVal(item, ['list_b3_medis', 'List_B3_Medis']), getVal(item, ['list_b3_lab', 'List_B3_Lab']), getVal(item, ['list_b3_rt', 'List_B3_RT']),
-                        getVal(item, ['doc_b3', 'Doc_B3']), getVal(item, ['ket_lain', 'Keterangan'])
-                    ]);
+                    // 2. LOGIKA PERHITUNGAN DAN PENYUSUNAN DATA BARIS
+                    const dataRows = filtered.map((item, index) => {
+                        // Ambil jumlah per kategori
+                        let lab = parseFloat(getVal(item, ['jml_b3_lab', 'Jml_B3_Lab']) || 0);
+                        let medis = parseFloat(getVal(item, ['jml_b3_medis', 'Jml_B3_Medis']) || 0);
+                        let rt = parseFloat(getVal(item, ['jml_b3_rt', 'Jml_B3_RT']) || 0);
+                        let totalB3 = lab + medis + rt;
 
-                    const wsData = [titleRow, subTitleRow, emptyRow, tableHeaders, ...dataRows];
+                        // Ambil nilai dari 7 ceklis kelengkapan
+                        let simbol = parseFloat(getVal(item, ['cek_simbol', 'Cek_Simbol']) || 0);
+                        let kondisi = parseFloat(getVal(item, ['cek_kondisi', 'Cek_Kondisi']) || 0);
+                        let expired = parseFloat(getVal(item, ['cek_expired', 'Cek_Expired']) || 0);
+                        let label = parseFloat(getVal(item, ['cek_label', 'Cek_Label']) || 0);
+                        let pisah = parseFloat(getVal(item, ['cek_pisah', 'Cek_Pisah']) || 0);
+                        let msds = parseFloat(getVal(item, ['cek_msds', 'Cek_MSDS']) || 0);
+                        let spillkit = parseFloat(getVal(item, ['cek_spillkit', 'Cek_Spillkit']) || 0);
+
+                        // Hitung Rata-rata dan Persentase (Sesuai Rumus Anda)
+                        let rataJumlah = (simbol + kondisi + expired + label + pisah + msds + spillkit) / 7;
+                        
+                        let persentase = 0;
+                        let persentaseStr = "#DIV/0!";
+                        if (totalB3 > 0) {
+                            persentase = (rataJumlah / totalB3) * 100;
+                            if(persentase > 100) persentase = 100; // Mencegah lebih dari 100%
+                            // Format ke bentuk Indonesia (Contoh: 71,43%)
+                            persentaseStr = persentase.toFixed(2).replace('.', ',') + "%"; 
+                        }
+
+                        return [
+                            index + 1,
+                            getVal(item, ['Ruangan', 'Unit_Kerja']),
+                            lab, medis, rt,
+                            "v", "", // Default: Lemari dicentang 'v', Wadah dikosongkan (Sesuai Excel)
+                            totalB3,
+                            simbol, kondisi, expired, label, pisah, msds, spillkit, 
+                            rataJumlah, // Tampil angka mentah (panjang komanya akan diatur otomatis oleh Excel)
+                            persentaseStr,
+                            getVal(item, ['ket_lain', 'Keterangan'])
+                        ];
+                    });
+
+                    // 3. MEMBUAT WORKSHEET EXCEL
+                    const wsData = [titleRow1, titleRow2, headerTop, headerBottom, ...dataRows];
                     const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    // ========================================================
+                    // 🚀 TAMBAHAN BARU: STYLING GARIS, WARNA, & RATA TENGAH
+                    // ========================================================
+                    const borderStyle = {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    };
+
+                    // Melakukan looping ke seluruh kotak Excel untuk diberi garis
+                    for (let i in ws) {
+                        if (i[0] === '!') continue; // Lewati pengaturan sistem Excel
+                        
+                        let cell = ws[i];
+                        let cellRef = XLSX.utils.decode_cell(i);
+                        
+                        if (!cell.s) cell.s = {}; // Buat tempat styling jika belum ada
+                        
+                        // Memberikan garis dan rata tengah untuk mulai dari baris ke-3 (Tabel)
+                        if (cellRef.r >= 2) { 
+                            cell.s.border = borderStyle;
+                            cell.s.alignment = { vertical: "center", horizontal: "center", wrapText: true };
+                        }
+
+                        // Mewarnai Header menjadi Kuning dan Cetak Tebal (Baris 3 & 4 / Index 2 & 3)
+                        if (cellRef.r === 2 || cellRef.r === 3) {
+                            cell.s.font = { bold: true };
+                            cell.s.fill = { fgColor: { rgb: "FFFF00" } }; // Warna Kuning Terang
+                        }
+
+                        // Memperbaiki Gaya Judul Laporan Paling Atas (Baris 1 & 2)
+                        if (cellRef.r === 0) {
+                            cell.s.font = { bold: true, sz: 12 };
+                            cell.s.alignment = { horizontal: "left", vertical: "center" };
+                        }
+                        
+                        // Kolom Keterangan (Paling Kanan) & Nama Ruangan Rata Kiri agar mudah dibaca
+                        if (cellRef.r > 3 && (cellRef.c === 1 || cellRef.c === 17)) {
+                            cell.s.alignment = { vertical: "center", horizontal: "left", wrapText: true };
+                        }
+                    }
+                    // ========================================================
+                    
+                    // 4. MENGGABUNGKAN SEL (MERGE CELLS) AGAR PERSIS SEPERTI GAMBAR
                     if(!ws['!merges']) ws['!merges'] = [];
+                    // Merge Judul Paling Atas
                     ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }); 
-                    ws['!merges'].push({ s: { r: 1, c: 0 }, e: { r: 1, c: 17 } }); 
-                    const wscols = tableHeaders.map(() => ({wch: 15}));
-                    wscols[13] = {wch: 30}; wscols[14] = {wch: 30}; wscols[15] = {wch: 30}; wscols[17] = {wch: 30};
+                    // Merge Header (No & Nama Ruangan)
+                    ws['!merges'].push({ s: { r: 2, c: 0 }, e: { r: 3, c: 0 } }); 
+                    ws['!merges'].push({ s: { r: 2, c: 1 }, e: { r: 3, c: 1 } }); 
+                    // Merge Kelompok Header
+                    ws['!merges'].push({ s: { r: 2, c: 2 }, e: { r: 2, c: 4 } }); // Jumlah B3...
+                    ws['!merges'].push({ s: { r: 2, c: 5 }, e: { r: 2, c: 6 } }); // Tempat Penyimpanan...
+                    ws['!merges'].push({ s: { r: 2, c: 7 }, e: { r: 3, c: 7 } }); // Total B3...
+                    ws['!merges'].push({ s: { r: 2, c: 8 }, e: { r: 2, c: 15 } }); // Jumlah Sesuai Persyaratan...
+                    // Merge Sisa Header Kanan
+                    ws['!merges'].push({ s: { r: 2, c: 16 }, e: { r: 3, c: 16 } }); // Persentase
+                    ws['!merges'].push({ s: { r: 2, c: 17 }, e: { r: 3, c: 17 } }); // Keterangan
+
+                    // 5. MENGATUR LEBAR KOLOM
+                    const wscols = [
+                        {wch: 5}, {wch: 25}, {wch: 18}, {wch: 18}, {wch: 18}, {wch: 10}, {wch: 10}, {wch: 20}, 
+                        {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 10}, {wch: 15}, 
+                        {wch: 15}, {wch: 40}
+                    ];
                     ws['!cols'] = wscols;
-                    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap B3");
+
+                    // Buat file dan Download!
+                    const wb = XLSX.utils.book_new(); 
+                    XLSX.utils.book_append_sheet(wb, ws, "Rekap B3");
                     XLSX.writeFile(wb, `Laporan_B3_${result.value}.xlsx`);
                 }
             });
@@ -1076,6 +1633,219 @@
                 }
             });
         }
+
+// ========================================================
+        // 🚀 MESIN PENARIK DAN PENGOLAH DATA RUANG TERBUKA (RTH)
+        // ========================================================
+        const FIREBASE_RT_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/RUANG_TERBUKA.json";
+        let globalRTData = [];
+
+        function loadRTData() {
+            const tbody = document.getElementById('rtTableBody');
+            if(tbody) tbody.innerHTML = '<tr><td colspan="23" style="text-align:center; padding:30px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:#10b981;"></i><br><br>Memuat Data RTH dari Database...</td></tr>';
+            
+            fetch(FIREBASE_RT_URL)
+            .then(res => res.json())
+            .then(data => {
+                globalRTData = [];
+                if(data && data !== 'null') {
+                    Object.keys(data).forEach(key => { globalRTData.push({ id: key, ...data[key] }); });
+                }
+                
+                const mStr = String(new Date().getMonth() + 1).padStart(2, '0');
+                const yStr = String(new Date().getFullYear());
+                if(document.getElementById('filterBulanRT')) document.getElementById('filterBulanRT').value = mStr;
+                if(document.getElementById('filterTahunRT')) document.getElementById('filterTahunRT').value = yStr;
+                
+                renderRTTable();
+            }).catch(e => {
+                console.log('Error Load RTH:', e);
+                if(tbody) tbody.innerHTML = '<tr><td colspan="23" style="text-align:center; color:red; padding:20px;">Gagal memuat data RTH.</td></tr>';
+            });
+        }
+
+        function renderRTTable() {
+            const tbody = document.getElementById('rtTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            const elBulan = document.getElementById('filterBulanRT');
+            const elTahun = document.getElementById('filterTahunRT');
+            const fBulan = elBulan ? elBulan.value : 'Semua';
+            const fTahun = elTahun ? elTahun.value : 'Semua';
+
+            const filtered = globalRTData.filter(row => {
+                if (!row.tanggal) return false; let d = new Date(row.tanggal);
+                return String(d.getMonth() + 1).padStart(2, '0') === fBulan && String(d.getFullYear()) === fTahun;
+            });
+
+            const grouped = {};
+            filtered.forEach(row => {
+                let loc = row.lokasi || 'Tidak Diketahui';
+                if (!grouped[loc]) {
+                    grouped[loc] = {
+                        m1: {b:'N/A', r:'N/A', s:'N/A', p:'N/A', pt:'N/A', img: null}, 
+                        m2: {b:'N/A', r:'N/A', s:'N/A', p:'N/A', pt:'N/A', img: null},
+                        m3: {b:'N/A', r:'N/A', s:'N/A', p:'N/A', pt:'N/A', img: null}, 
+                        m4: {b:'N/A', r:'N/A', s:'N/A', p:'N/A', pt:'N/A', img: null},
+                        keterangan: [] // 🚀 Menampung semua keterangan
+                    };
+                }
+                
+                let weekStr = row.minggu_ke || ''; let wKey = null;
+                if(weekStr.includes('1')) wKey = 'm1'; else if(weekStr.includes('2')) wKey = 'm2'; else if(weekStr.includes('3')) wKey = 'm3'; else if(weekStr.includes('4')) wKey = 'm4';
+
+                if(wKey) {
+                    grouped[loc][wKey].b = row.cek_bersih || 'N/A';
+                    grouped[loc][wKey].r = row.cek_rapih || 'N/A';
+                    grouped[loc][wKey].s = row.cek_sehat || 'N/A';
+                    grouped[loc][wKey].p = row.cek_rumput || 'N/A';
+                    grouped[loc][wKey].pt = row.cek_pohon || 'N/A';
+                    grouped[loc][wKey].img = row.imageData || row.doc_rth || row.Doc_RTH || null;
+                }
+                
+                // Menangkap teks Keterangan
+                let ket = row.keterangan || row.ket_lain || '';
+                if (ket && ket.trim() !== '' && ket.trim() !== '-') {
+                    grouped[loc].keterangan.push(ket.trim());
+                }
+            });
+
+            const locs = Object.keys(grouped).sort();
+
+            if(locs.length === 0) { 
+                tbody.innerHTML = '<tr><td colspan="25" style="text-align:center; padding:30px; color:#94a3b8; font-weight:bold;">Belum ada data RTH pada periode ini.</td></tr>'; return; 
+            }
+
+            const getCellHtml = (val) => {
+                let color = val === 'Ya' ? '#15803d' : (val === 'Tidak' ? '#b91c1c' : '#ffffff');
+                let bg = val === 'Ya' ? '#dcfce7' : (val === 'Tidak' ? '#fee2e2' : '#2563eb');
+                return `<td align="center" style="border: 1px solid #cbd5e1;"><span style="background:${bg}; color:${color}; padding:4px 10px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${val}</span></td>`;
+            };
+
+            locs.forEach((loc, index) => {
+                let data = grouped[loc];
+                let totalTidak = 0; let totalData = 0;
+                ['m1','m2','m3','m4'].forEach(m => { ['b','r','s','p','pt'].forEach(k => {
+                    if(data[m][k] !== 'N/A') totalData++;
+                    if(data[m][k] === 'Tidak') totalTidak++;
+                });});
+
+                let kategori = "Terpelihara"; let catColor = "#15803d"; let catBg = "#dcfce7";
+                if(totalData > 0) {
+                    if(totalTidak >= 3) { kategori = "Tidak Terpelihara"; catColor = "#b91c1c"; catBg = "#fee2e2"; }
+                    else if (totalTidak > 0) { kategori = "Terpelihara (Catatan)"; catColor = "#b45309"; catBg = "#fef3c7"; }
+                } else { kategori = "Belum Ada Data"; catColor = "#64748b"; catBg = "#f1f5f9"; }
+
+                let fotos = [];
+                ['m1','m2','m3','m4'].forEach((m, idx) => {
+                    if(data[m].img && typeof data[m].img === 'string' && data[m].img.length > 50) {
+                        fotos.push(`<img src="${data[m].img}" style="width:28px; height:28px; border-radius:4px; cursor:pointer; border:1px solid #cbd5e1; object-fit:cover;" onclick="Swal.fire({imageUrl: '${data[m].img}', title: 'Foto RTH - Minggu ${idx+1}', showConfirmButton: false, width:500})" title="Lihat Foto Minggu ${idx+1}">`);
+                    }
+                });
+                let fotoHtml = fotos.length > 0 ? `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:4px; width:70px;">${fotos.join('')}</div>` : '<span style="color:#cbd5e1; font-size: 0.8rem;">Tidak Ada</span>';
+
+                // 🚀 Menggabungkan catatan Keterangan tanpa duplikat
+                let ketText = data.keterangan.length > 0 ? [...new Set(data.keterangan)].join(' | ') : '-';
+
+                tbody.innerHTML += `<tr>
+                    <td align="center" style="border: 1px solid #cbd5e1; font-weight:bold;">${index + 1}</td>
+                    <td style="border: 1px solid #cbd5e1; font-weight:bold; white-space:nowrap;">${loc}</td>
+                    ${getCellHtml(data.m1.b)}${getCellHtml(data.m1.r)}${getCellHtml(data.m1.s)}${getCellHtml(data.m1.p)}${getCellHtml(data.m1.pt)}
+                    ${getCellHtml(data.m2.b)}${getCellHtml(data.m2.r)}${getCellHtml(data.m2.s)}${getCellHtml(data.m2.p)}${getCellHtml(data.m2.pt)}
+                    ${getCellHtml(data.m3.b)}${getCellHtml(data.m3.r)}${getCellHtml(data.m3.s)}${getCellHtml(data.m3.p)}${getCellHtml(data.m3.pt)}
+                    ${getCellHtml(data.m4.b)}${getCellHtml(data.m4.r)}${getCellHtml(data.m4.s)}${getCellHtml(data.m4.p)}${getCellHtml(data.m4.pt)}
+                    <td align="center" style="border: 1px solid #cbd5e1; white-space:nowrap;"><span style="background:${catBg}; color:${catColor}; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${kategori}</span></td>
+                    <td align="center" style="border: 1px solid #cbd5e1; background: #f8fafc;">${fotoHtml}</td>
+                    <td style="border: 1px solid #cbd5e1; min-width: 150px;"><small style="color:#475569; font-weight: 500;">${ketText}</small></td>
+                </tr>`;
+            });
+        }
+
+        function downloadExcelRT() {
+            const elBulan = document.getElementById('filterBulanRT');
+            const elTahun = document.getElementById('filterTahunRT');
+            const fBulan = elBulan ? elBulan.value : '01';
+            const fTahun = elTahun ? elTahun.value : '2026';
+            const namaBulan = elBulan ? elBulan.options[elBulan.selectedIndex].text : '';
+
+            const filtered = globalRTData.filter(row => {
+                if (!row.tanggal) return false; let d = new Date(row.tanggal);
+                return String(d.getMonth() + 1).padStart(2, '0') === fBulan && String(d.getFullYear()) === fTahun;
+            });
+
+            if (filtered.length === 0) { Swal.fire('Data Kosong', 'Tidak ada data RTH pada bulan ini.', 'info'); return; }
+
+            const grouped = {};
+            filtered.forEach(row => {
+                let loc = row.lokasi || 'Unknown';
+                if (!grouped[loc]) grouped[loc] = { 
+                    m1:{b:'N/A',r:'N/A',s:'N/A',p:'N/A',pt:'N/A'}, m2:{b:'N/A',r:'N/A',s:'N/A',p:'N/A',pt:'N/A'}, 
+                    m3:{b:'N/A',r:'N/A',s:'N/A',p:'N/A',pt:'N/A'}, m4:{b:'N/A',r:'N/A',s:'N/A',p:'N/A',pt:'N/A'}, 
+                    keterangan: [] 
+                };
+                let w = row.minggu_ke || ''; let k = null;
+                if(w.includes('1')) k='m1'; else if(w.includes('2')) k='m2'; else if(w.includes('3')) k='m3'; else if(w.includes('4')) k='m4';
+                if(k) { grouped[loc][k].b=row.cek_bersih||'N/A'; grouped[loc][k].r=row.cek_rapih||'N/A'; grouped[loc][k].s=row.cek_sehat||'N/A'; grouped[loc][k].p=row.cek_rumput||'N/A'; grouped[loc][k].pt=row.cek_pohon||'N/A'; }
+                
+                let ket = row.keterangan || row.ket_lain || '';
+                if(ket && ket.trim() !== '' && ket.trim() !== '-') grouped[loc].keterangan.push(ket.trim());
+            });
+
+            const titleRow1 = [`Rekapitulasi Pemantauan Pemeliharaan Ruang Terbuka Hijau (RTH) Tahun ${fTahun}`];
+            const titleRow3 = [`Bulan : ${namaBulan} ${fTahun}`];
+            
+            // 🚀 Menggeser Index Array karena tambahan 1 kolom Keterangan di akhir
+            const h1 = ["No", "Area RTH", "Jenis Pemantauan", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "Kategori", "Keterangan"];
+            const h2 = ["", "", "Minggu 1", "", "", "", "", "Minggu 2", "", "", "", "", "Minggu 3", "", "", "", "", "Minggu 4", "", "", "", "", "", ""];
+            const h3 = ["", "", "Bersih dan Bebas Sampah", "Tanaman Rapih dan Bebas Gulma", "Tanaman Sehat dan Terpelihara", "Pemotongan Rumput Rutin", "Perapihan Pohon Tinggi", "Bersih dan Bebas Sampah", "Tanaman Rapih dan Bebas Gulma", "Tanaman Sehat dan Terpelihara", "Pemotongan Rumput Rutin", "Perapihan Pohon Tinggi", "Bersih dan Bebas Sampah", "Tanaman Rapih dan Bebas Gulma", "Tanaman Sehat dan Terpelihara", "Pemotongan Rumput Rutin", "Perapihan Pohon Tinggi", "Bersih dan Bebas Sampah", "Tanaman Rapih dan Bebas Gulma", "Tanaman Sehat dan Terpelihara", "Pemotongan Rumput Rutin", "Perapihan Pohon Tinggi", "", ""];
+
+            const dataRows = Object.keys(grouped).sort().map((loc, i) => {
+                let d = grouped[loc];
+                let totTidak=0, totData=0;
+                ['m1','m2','m3','m4'].forEach(m=>{['b','r','s','p','pt'].forEach(k=>{ if(d[m][k]!=='N/A')totData++; if(d[m][k]==='Tidak')totTidak++; })});
+                let kat = "Terpelihara";
+                if(totData>0){ if(totTidak>=3)kat="Tidak Terpelihara"; else if(totTidak>0)kat="Terpelihara dengan catatan"; } else kat="-";
+
+                let ketText = d.keterangan.length > 0 ? [...new Set(d.keterangan)].join(' | ') : '-';
+
+                return [ i+1, loc, 
+                    d.m1.b, d.m1.r, d.m1.s, d.m1.p, d.m1.pt, d.m2.b, d.m2.r, d.m2.s, d.m2.p, d.m2.pt,
+                    d.m3.b, d.m3.r, d.m3.s, d.m3.p, d.m3.pt, d.m4.b, d.m4.r, d.m4.s, d.m4.p, d.m4.pt, kat, ketText
+                ];
+            });
+
+            const wsData = [titleRow1, [], titleRow3, [], h1, h2, h3, ...dataRows];
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            const borderStyle = { top: {style:"thin"}, bottom: {style:"thin"}, left: {style:"thin"}, right: {style:"thin"} };
+            for(let i in ws) {
+                if(i[0]==='!') continue;
+                let cRef = XLSX.utils.decode_cell(i);
+                if(!ws[i].s) ws[i].s = {};
+                
+                if(cRef.r === 0 || cRef.r === 2) { ws[i].s.font = {bold:true, sz:11}; }
+                if(cRef.r >= 4) { ws[i].s.border = borderStyle; ws[i].s.alignment = {vertical:"center", horizontal:"center", wrapText:true}; }
+                if(cRef.r >= 4 && cRef.r <= 6) { ws[i].s.font = {bold:true, sz:9}; ws[i].s.fill = {fgColor:{rgb:"F8FAFC"}}; }
+                // Nama Area RTH & Keterangan rata kiri
+                if(cRef.r > 6 && (cRef.c === 1 || cRef.c === 23)) { ws[i].s.alignment = {vertical:"center", horizontal:"left", wrapText:true}; }
+            }
+
+            if(!ws['!merges']) ws['!merges'] = [];
+            // Merge Judul Atas
+            ws['!merges'].push({ s:{r:0,c:0}, e:{r:0,c:23} }, { s:{r:2,c:0}, e:{r:2,c:23} });
+            // Merge Header No, Area RTH, Kategori, Keterangan
+            ws['!merges'].push({ s:{r:4,c:0}, e:{r:6,c:0} }, { s:{r:4,c:1}, e:{r:6,c:1} }, { s:{r:4,c:22}, e:{r:6,c:22} }, { s:{r:4,c:23}, e:{r:6,c:23} });
+            ws['!merges'].push({ s:{r:4,c:2}, e:{r:4,c:21} });
+            // Merge Header Minggu
+            ws['!merges'].push({ s:{r:5,c:2}, e:{r:5,c:6} }, { s:{r:5,c:7}, e:{r:5,c:11} }, { s:{r:5,c:12}, e:{r:5,c:16} }, { s:{r:5,c:17}, e:{r:5,c:21} });
+
+            ws['!cols'] = [ {wch:4}, {wch:20}, {wch:10},{wch:10},{wch:10},{wch:10},{wch:10}, {wch:10},{wch:10},{wch:10},{wch:10},{wch:10}, {wch:10},{wch:10},{wch:10},{wch:10},{wch:10}, {wch:10},{wch:10},{wch:10},{wch:10},{wch:10}, {wch:15}, {wch:35} ];
+
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Rekap RTH");
+            XLSX.writeFile(wb, `Laporan_RTH_${namaBulan}_${fTahun}.xlsx`);
+        }
+
 
     </script>
 </body>
