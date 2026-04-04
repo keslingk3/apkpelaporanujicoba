@@ -1733,8 +1733,14 @@ document.getElementById('page-ruang-terbuka').classList.add('hidden');
 
                 let kategori = "Terpelihara"; let catColor = "#15803d"; let catBg = "#dcfce7";
                 if(totalData > 0) {
-                    if(totalTidak >= 3) { kategori = "Tidak Terpelihara"; catColor = "#b91c1c"; catBg = "#fee2e2"; }
-                    else if (totalTidak > 0) { kategori = "Terpelihara (Catatan)"; catColor = "#b45309"; catBg = "#fef3c7"; }
+                    if (data.keterangan.length > 0) { 
+                        // Jika ADA catatan
+                        kategori = "Terpelihara (Catatan)"; catColor = "#b45309"; catBg = "#fef3c7"; 
+                    } else if (totalTidak > 0) { 
+                        // Jika ada komponen yang "Tidak", TAPI TIDAK ADA catatan
+                        kategori = "Tidak Terpelihara"; catColor = "#b91c1c"; catBg = "#fee2e2"; 
+                    }
+                    // (Jika semua "Ya" dan tidak ada catatan, otomatis tetap hijau "Terpelihara")
                 } else { kategori = "Belum Ada Data"; catColor = "#64748b"; catBg = "#f1f5f9"; }
 
                 let fotos = [];
@@ -1805,7 +1811,10 @@ document.getElementById('page-ruang-terbuka').classList.add('hidden');
                 let totTidak=0, totData=0;
                 ['m1','m2','m3','m4'].forEach(m=>{['b','r','s','p','pt'].forEach(k=>{ if(d[m][k]!=='N/A')totData++; if(d[m][k]==='Tidak')totTidak++; })});
                 let kat = "Terpelihara";
-                if(totData>0){ if(totTidak>=3)kat="Tidak Terpelihara"; else if(totTidak>0)kat="Terpelihara dengan catatan"; } else kat="-";
+                if(totData > 0) { 
+                    if (d.keterangan.length > 0) { kat = "Terpelihara dengan catatan"; }
+                    else if (totTidak > 0) { kat = "Tidak Terpelihara"; }
+                } else kat = "-";
 
                 let ketText = d.keterangan.length > 0 ? [...new Set(d.keterangan)].join(' | ') : '-';
 
