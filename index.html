@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Tumpahan B3/Limbah B3 (SPILLKIT)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Sembunyikan icon kalender default di beberapa browser jika diinginkan, atau biarkan bawaan */
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
@@ -72,7 +73,7 @@
             </h3>
             <ol class="list-decimal list-inside text-xs text-gray-600 space-y-2.5 leading-relaxed">
                 <li><span class="font-semibold text-gray-800">Scan Barcoede:</span> Scan barcode menggunakan handphone dan nanti akan muncul menu utama pelaporan SPILLKIT.</li>
-                <li><span class="font-semibold text-gray-800">Buka Aplikasi Form:</span> Klik menu <span class="text-blue-600 font-semibold">Laporan Spillkit</span>.</li> nanti akan membuka form pelaporan.</li>
+                <li><span class="font-semibold text-gray-800">Buka Aplikasi Form:</span> Klik menu <span class="text-blue-600 font-semibold">Laporan Spillkit</span>, nanti akan membuka form pelaporan.</li>
                 <li><span class="font-semibold text-gray-800">Lengkapi Data:</span> Isi Informasi Pelapor beserta detail Informasi Tumpahan (Lokasi, Waktu, Estimasi jumlah).</li>
                 <li><span class="font-semibold text-gray-800">Lampirkan Bukti Foto:</span> Klik tombol Ambil Foto untuk mengunggah dokumentasi kondisi tumpahan/pasca penanganan.</li>
                 <li><span class="font-semibold text-gray-800">Tanda Tangan digital:</span> Bubuhkan tanda tangan Anda langsung pada kotak canvas tanda tangan yang disediakan.</li>
@@ -81,7 +82,7 @@
         </div>
 
         <div class="pt-4 border-t border-gray-100 text-center">
-            <span class="text-xs font-bold text-gray-400 tracking-wider">@by K3KL</span>
+            <span class="text-xs font-bold text-gray-400 tracking-wider">@by Instalasi K3KL</span>
         </div>
     </div>
 
@@ -92,7 +93,7 @@
             
             <h1 class="text-xl font-bold text-blue-600 text-center mb-6">Form Tumpahan B3/Limbah B3 (SPILLKIT)</h1>
 
-            <form action="#" method="POST" class="space-y-6">
+            <form id="form-spillkit" class="space-y-6">
                 
                 <div>
                     <div class="flex items-center gap-2 mb-3 border-b border-gray-100 pb-2">
@@ -118,18 +119,18 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-gray-600 mb-1">Umur (Tahun)</label>
-                                <input type="number" name="umur" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 28">
+                                <input type="number" name="umur" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 28" required>
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
-                            <input type="text" name="jabatan" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Perawat, Cleaning Service...">
+                            <input type="text" name="jabatan" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Perawat, Cleaning Service..." required>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Unit Kerja</label>
-                            <input type="text" name="unit_kerja" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Laboratorium, Ruang Utari...">
+                            <input type="text" name="unit_kerja" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Laboratorium, Ruang Utari..." required>
                         </div>
                     </div>
                 </div>
@@ -187,17 +188,17 @@
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi Kejadian</label>
-                            <input type="text" name="lokasi_kejadian" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Detail lokasi...">
+                            <input type="text" name="lokasi_kejadian" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Detail lokasi..." required>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Estimasi</label>
-                            <input type="text" name="jumlah_estimasi" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 500 ml">
+                            <input type="text" name="jumlah_estimasi" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 500 ml" required>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Apakah tumpahan mengenai seseorang?</label>
-                            <select name="mengenai_seseorang" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                            <select name="mengenai_seseorang" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" required>
                                 <option value="Tidak">Tidak</option>
                                 <option value="Ya">Ya</option>
                             </select>
@@ -205,12 +206,12 @@
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Penanganan yang telah dilakukan</label>
-                            <textarea name="penanganan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Jelaskan penanganan..."></textarea>
+                            <textarea name="penanganan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Jelaskan penanganan..." required></textarea>
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">Kondisi tempat setelah penanganan</label>
-                            <textarea name="kondisi_akhir" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Kondisi akhir..."></textarea>
+                            <textarea name="kondisi_akhir" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Kondisi akhir..." required></textarea>
                         </div>
                     </div>
                 </div>
@@ -224,14 +225,14 @@
                         <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">FOTO BUKTI (KAMERA)</h2>
                     </div>
                     
-                    <input type="file" id="foto_bukti" name="foto_bukti" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                    <input type="file" id="foto_bukti" accept="image/*" capture="environment" class="hidden" onchange="updateFileName(this)">
                     
                     <button type="button" onclick="document.getElementById('foto_bukti').click()" class="w-full bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold py-2.5 rounded-md flex justify-center items-center gap-2 transition duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
                           <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
                           <path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
                         </svg>
-                        AMBIL FOTO TUMPAHAN
+                        AMBIL FOTO
                     </button>
                     <p id="nama_foto" class="text-[11px] text-gray-400 text-center mt-2">Belum ada foto.</p>
                 </div>
@@ -242,7 +243,7 @@
                           <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.158 3.71 3.71 1.159-1.157a2.625 2.625 0 000-3.711z" />
                           <path d="M19.54 7.5l-3.71-3.71L4.016 15.605A2.25 2.25 0 003 17.195V21h3.805c.596 0 1.168-.237 1.59-.659L19.54 7.5zM12 17.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75z" />
                     </svg>
-                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">TANDA TANGAN PELAPOR / PEMBUAT LAPORAN</h2>
+                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">TANDA TANGAN</h2>
                     </div>
                     
                     <p class="text-xs text-gray-500 mb-2">Silakan tanda tangan di kotak di bawah ini:</p>
@@ -262,7 +263,7 @@
                 </div>
 
                 <div class="mt-8 pt-4">
-                    <button type="submit" onclick="saveSignature()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 rounded-md flex justify-center items-center gap-2 shadow-md transition duration-200">
+                    <button type="submit" id="btn-kirim" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 rounded-md flex justify-center items-center gap-2 shadow-md transition duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 -rotate-45 mb-1">
                           <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
                         </svg>
@@ -283,7 +284,7 @@
         </div>
 
     <script>
-        // Fungsi untuk handle perpindahan halaman agar mulus (Landing, Panduan, & Form)
+        // --- 1. Fungsi Navigasi Halaman ---
         function navigasiKe(idHalaman) {
             document.getElementById('landing-page').classList.add('hidden');
             document.getElementById('panduan-page').classList.add('hidden');
@@ -291,17 +292,15 @@
 
             document.getElementById(idHalaman).classList.remove('hidden');
 
-            // Khusus jika membuka halaman Form, kalkulasi ulang ukuran canvas tanda tangan agar presisi
             if (idHalaman === 'form-page') {
                 setTimeout(resizeCanvas, 50);
             }
         }
 
-        // 1. Script untuk memunculkan textbox "Lainnya"
+        // --- 2. Fitur Checkbox "Lainnya" ---
         function toggleLainnya() {
             const checkBox = document.getElementById("checkLainnya");
             const inputField = document.getElementById("inputLainnya");
-            
             if (checkBox.checked) {
                 inputField.classList.remove("hidden");
                 inputField.focus();
@@ -311,7 +310,7 @@
             }
         }
 
-        // 2. Script untuk update nama file foto
+        // --- 3. Fitur Update Nama File Foto ---
         function updateFileName(input) {
             const fileNameDisplay = document.getElementById('nama_foto');
             if (input.files && input.files.length > 0) {
@@ -325,41 +324,29 @@
             }
         }
 
-        // 3. Script untuk Canvas Tanda Tangan
+        // --- 4. Tanda Tangan Canvas ---
         const canvas = document.getElementById('signature-pad');
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
 
-        // Atur ukuran canvas agar sesuai dengan container dan tidak blur
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
-            // Validasi pengecekan ukuran container saat dimunculkan
             if (rect.width > 0) {
                 canvas.width = rect.width;
                 canvas.height = rect.height;
-                // Set style garis
                 ctx.lineWidth = 2.5;
                 ctx.lineCap = 'round';
                 ctx.strokeStyle = '#000';
             }
         }
-        
         window.addEventListener('resize', resizeCanvas);
-        // resizeCanvas() sengaja tidak langsung dipanggil saat onload karena form berstatus 'hidden' di awal.
 
-        // Dapatkan koordinat sentuhan/mouse yang akurat
         function getCoordinates(event) {
             const rect = canvas.getBoundingClientRect();
             if (event.touches && event.touches.length > 0) {
-                return {
-                    x: event.touches[0].clientX - rect.left,
-                    y: event.touches[0].clientY - rect.top
-                };
+                return { x: event.touches[0].clientX - rect.left, y: event.touches[0].clientY - rect.top };
             }
-            return {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top
-            };
+            return { x: event.clientX - rect.left, y: event.clientY - rect.top };
         }
 
         function startDrawing(e) {
@@ -367,7 +354,7 @@
             const coords = getCoordinates(e);
             ctx.beginPath();
             ctx.moveTo(coords.x, coords.y);
-            e.preventDefault(); // Mencegah scrolling halaman di HP saat TTD
+            e.preventDefault(); 
         }
 
         function draw(e) {
@@ -378,53 +365,147 @@
             e.preventDefault();
         }
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
+        function stopDrawing() { isDrawing = false; }
 
-        // Event Listeners Mouse (PC)
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-
-        // Event Listeners Touch (HP)
         canvas.addEventListener('touchstart', startDrawing, {passive: false});
         canvas.addEventListener('touchmove', draw, {passive: false});
         canvas.addEventListener('touchend', stopDrawing);
 
-        // Tombol Hapus Tanda Tangan
         document.getElementById('btn-hapus-ttd').addEventListener('click', function() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
-        // Simpan TTD sebagai gambar Base64 ke input hidden saat dikirim
         function saveSignature() {
-            const dataURL = canvas.toDataURL('image/png');
-            document.getElementById('tanda_tangan_data').value = dataURL;
+            // Memastikan canvas tidak kosong sebelum disave
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width;
+            blank.height = canvas.height;
+            if (canvas.toDataURL() === blank.toDataURL()) {
+                return ""; // Kosong
+            }
+            return canvas.toDataURL('image/png');
         }
 
-        // 4. Integrasi Auto-Fill Unit Kerja & Lokasi berdasarkan scan link QR Code (?ruangan=...)
+        // --- 5. Auto-Fill dari URL Param QR Code ---
         document.addEventListener("DOMContentLoaded", function() {
             const urlParams = new URLSearchParams(window.location.search);
-            const namaRuangan = urlParams.get('ruangan'); // Menangkap teks setelah ?ruangan=
+            const namaRuangan = urlParams.get('ruangan');
             
             if (namaRuangan) {
-                // Cari input Unit Kerja dan Lokasi Kejadian di dalam form
                 const inputUnitKerja = document.querySelector('input[name="unit_kerja"]');
                 const inputLokasiKejadian = document.querySelector('input[name="lokasi_kejadian"]');
                 
-                // Isi nilai Unit Kerja otomatis dan kunci biar tidak diedit manual
                 if (inputUnitKerja) {
                     inputUnitKerja.value = namaRuangan;
                     inputUnitKerja.readOnly = true; 
                     inputUnitKerja.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
                 }
-                
-                // Isi nilai Lokasi Kejadian otomatis sebagai nilai default awal
                 if (inputLokasiKejadian) {
                     inputLokasiKejadian.value = namaRuangan;
                 }
+            }
+        });
+
+        // --- 6. INTEGRASI PENGIRIMAN DATA KE FIREBASE ---
+        // Fungsi merubah file gambar ke base64
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        document.getElementById('form-spillkit').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            
+            // Simpan ttd
+            let ttdData = saveSignature();
+            if (ttdData === "") {
+                Swal.fire('Perhatian!', 'Tanda tangan belum diisi.', 'warning');
+                return;
+            }
+            document.getElementById('tanda_tangan_data').value = ttdData;
+
+            // Pastikan ada setidaknya 1 checkbox jenis yang dipilih
+            let jenisArr = [];
+            document.querySelectorAll('input[name="jenis_tumpahan[]"]:checked').forEach(cb => {
+                if(cb.value !== 'Lainnya') jenisArr.push(cb.value);
+            });
+            if(document.getElementById('checkLainnya').checked) {
+                let textLainnya = document.getElementById('inputLainnya').value.trim();
+                if(textLainnya !== "") jenisArr.push(textLainnya);
+            }
+            
+            if (jenisArr.length === 0) {
+                Swal.fire('Perhatian!', 'Pilih minimal satu Jenis Tumpahan.', 'warning');
+                return;
+            }
+
+            // Status Loading Tombol
+            const btnSubmit = document.getElementById('btn-kirim');
+            const originalBtnContent = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = 'MENGIRIM DATA...';
+            btnSubmit.disabled = true;
+
+            try {
+                // Proses Gambar
+                let fileInput = document.getElementById('foto_bukti');
+                let fotoBase64 = "";
+                if(fileInput.files.length > 0) {
+                    fotoBase64 = await toBase64(fileInput.files[0]);
+                }
+
+                // Susun Payload Untuk Firebase (Nama key disamakan dgn di Admin Dashboard)
+                let payload = {
+                    petugas: document.querySelector('input[name="nama_pelapor"]').value,
+                    Gender: document.querySelector('select[name="jenis_kelamin"]').value,
+                    Umur: document.querySelector('input[name="umur"]').value,
+                    Jabatan: document.querySelector('input[name="jabatan"]').value,
+                    lokasi: document.querySelector('input[name="lokasi_kejadian"]').value,
+                    tanggal: document.querySelector('input[name="waktu_pelaporan"]').value,
+                    
+                    jenisLaporan: "Tumpahan B3", 
+                    jenis_bahan: jenisArr.join(', '),
+                    kena_orang: document.querySelector('select[name="mengenai_seseorang"]').value,
+                    Penanganan: document.querySelector('textarea[name="penanganan"]').value,
+                    keterangan: "Estimasi: " + document.querySelector('input[name="jumlah_estimasi"]').value + " | Kondisi Akhir: " + document.querySelector('textarea[name="kondisi_akhir"]').value,
+                    
+                    status: "Menunggu",
+                    imageData: fotoBase64,  
+                    ttd_image: ttdData      
+                };
+
+                // Tembak Data Firebase POST
+                const FIREBASE_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/Spillkit.json";
+
+                const response = await fetch(FIREBASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        title: 'Terkirim!',
+                        text: 'Laporan Spillkit berhasil dikirim ke Admin.',
+                        icon: 'success',
+                        confirmButtonColor: '#2563eb'
+                    }).then(() => {
+                        window.location.reload(); 
+                    });
+                } else {
+                    throw new Error("Gagal mengirim data");
+                }
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error!', 'Terjadi kesalahan jaringan atau database. Silakan coba lagi.', 'error');
+                btnSubmit.innerHTML = originalBtnContent;
+                btnSubmit.disabled = false;
             }
         });
     </script>
