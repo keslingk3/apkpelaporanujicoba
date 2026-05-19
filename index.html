@@ -2,742 +2,432 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Safety Reporting System</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Tumpahan B3/Limbah B3 (SPILLKIT)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --primary: #2563eb; --danger: #ef4444; --warning: #f59e0b; --success: #10b981; --info: #8b5cf6; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --border: #e5e7eb; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--text); padding-bottom: 80px; }
-        .container { max-width: 600px; margin: auto; }
-        .app-header { text-align: center; margin-bottom: 30px; padding-top: 20px; }
-        .app-header h1 { font-size: 1.5rem; margin: 0; color: var(--primary); font-weight: 800; }
-        .app-header p { font-size: 0.9rem; color: #6b7280; margin-top: 5px; }
-        .card { background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .menu-btn { display: flex; align-items: center; gap: 15px; padding: 20px; border-radius: 15px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .menu-btn:active { transform: scale(0.98); }
-        .menu-btn i { font-size: 1.8rem; }
-        .menu-btn h3 { margin: 0; font-size: 1rem; font-weight: 600; }
-        .menu-btn p { margin: 2px 0 0; font-size: 0.8rem; color: #6b7280; }
-        .btn-danger { border-left: 5px solid var(--danger); } .btn-danger i { color: var(--danger); }
-        .btn-warning { border-left: 5px solid var(--warning); } .btn-warning i { color: var(--warning); }
-        .btn-history { border-left: 5px solid var(--success); } .btn-history i { color: var(--success); }
-        .btn-info { border-left: 5px solid var(--info); } .btn-info i { color: var(--info); }
-        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); } 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); } }
-        .status-wait { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; animation: pulse-orange 2s infinite; }
-        .status-process { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .status-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-        .history-item { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
-        .history-item:last-child { border-bottom: none; margin-bottom: 0; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .btn-mini { border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; }
-        .btn-pdf-user { background: #fee2e2; color: #991b1b; } .btn-pdf-inv { background: #dbeafe; color: #1e40af; }
-        .section-header { display: flex; align-items: center; gap: 10px; margin-top: 25px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid var(--bg); }
-        .section-header i { color: var(--primary); }
-        .section-header span { font-weight: 700; color: #374151; font-size: 0.95rem; text-transform: uppercase; }
-        label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600; color: #4b5563; }
-        .form-control { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 10px; font-size: 0.95rem; background: #f9fafb; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        .row { display: flex; gap: 15px; } .col { flex: 1; }
-        .btn-submit { width: 100%; padding: 16px; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-        .btn-back { width: 100%; padding: 12px; background: transparent; color: #6b7280; border: none; margin-top: 10px; cursor: pointer; font-size: 0.9rem; }
-        .hidden { display: none !important; }
-        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .checkbox-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; background: #f9fafb; padding: 10px; border-radius: 8px; border: 1px solid #e5e7eb; }
-        .checkbox-item input { width: 18px; height: 18px; }
-        .camera-btn { background: #8b5cf6; color: white; padding: 10px 15px; border-radius: 10px; text-align: center; cursor: pointer; display: block; margin-bottom: 5px; font-weight: 600; }
-        .camera-preview { width: 100%; max-height: 200px; object-fit: contain; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; display: none; }
-        .signature-wrapper { border: 2px dashed #cbd5e1; border-radius: 12px; background: #fff; position: relative; height: 180px; margin-bottom: 10px; overflow: hidden; }
-        canvas { display: block; width: 100%; height: 100%; }
-        .clear-sig-btn { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; cursor: pointer; z-index: 10; }
-        .app-footer { text-align: center; font-size: 0.75rem; color: #9ca3af; padding: 20px 0; margin-top: 30px; border-top: 1px solid #e5e7eb; }
+        /* Sembunyikan icon kalender default di beberapa browser jika diinginkan, atau biarkan bawaan */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans text-gray-700 py-8 px-4 min-h-screen flex flex-col justify-center items-center">
 
-<div class="container">
-    <div class="app-header">
-        <h1>Sistem Pelaporan Terpadu</h1>
-        <p>Sistem Pelaporan Kesling dan K3RS</p>
-    </div>
-
-    <div id="menu-page">
-        <div style="text-align:center; margin-bottom:20px; background:#fff; padding:10px; border-radius:10px; border:1px solid #e5e7eb;">
-            <i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> Posisi: <b id="lokasi-saat-ini">Mendeteksi...</b>
-        </div>
-        <div class="menu-grid">
-            <div class="menu-btn btn-danger" onclick="bukaForm('Kecelakaan Kerja')"><i class="fas fa-user-injured"></i><div><h3>Kecelakaan Kerja</h3><p>Lapor insiden fisik / medis</p></div></div>
-            <div class="menu-btn btn-warning" onclick="bukaForm('Tumpahan B3')"><i class="fas fa-biohazard"></i><div><h3>Tumpahan B3</h3><p>Lapor tumpahan bahan kimia</p></div></div>
-            <div class="menu-btn btn-info" onclick="bukaForm('Laporan Bahan B3')"><i class="fas fa-flask"></i><div><h3>Laporan Bahan B3</h3><p>Inspeksi & Stok B3</p></div></div>
-            <div class="menu-btn btn-history" onclick="bukaRiwayat()"><i class="fas fa-history"></i><div><h3>Riwayat Pelaporan</h3><p>Data Laporan Ruangan Ini</p></div></div>
-        </div>
-    </div>
-
-    <div id="form-page" class="hidden">
-        <form id="laporanForm">
-            <input type="hidden" name="action" value="input">
-            <input type="hidden" name="jenis" id="inputJenis">
-            <input type="hidden" name="ruangan" id="inputRuangan">
-            <input type="hidden" name="ttd_image" id="inputTTD">
-            
-            <input type="hidden" name="list_b3_medis" id="val_b3_medis">
-            <input type="hidden" name="list_b3_lab" id="val_b3_lab">
-            <input type="hidden" name="list_b3_rt" id="val_b3_rt">
-
-            <div class="card">
-                <h2 id="form-title" style="margin-top:0; text-align:center; color:var(--primary);">Form Laporan</h2>
-                
-                <div class="section-header"><i class="fas fa-user-circle"></i> <span>Data Pelapor</span></div>
-                <label id="lbl-pelapor">Nama Pelapor</label><input type="text" class="form-control" name="pelapor" required placeholder="Nama Lengkap Anda">
-                
-                <div id="wrapper-wa">
-                    <label>No. WhatsApp (Aktif)</label>
-                    <input type="number" class="form-control" name="wa" id="inputWA" placeholder="Mohon No nya diawali +628xxxxxxxxxx">
-                </div>
-
-                <div id="fields-kecelakaan">
-                    
-                    <label style="margin-top:15px; display:block; color:#2563eb; font-weight:bold;">Jenis Pelaporan Kecelakaan</label>
-                    <select class="form-control" name="kategori_kecelakaan" onchange="toggleJenisLainnya(this)">
-                        <option value="" disabled selected>-- Pilih Jenis --</option>
-                        <option value="Kecelakaan Kerja">Kecelakaan Kerja</option>
-                        <option value="Kecelakaan Lalulintas">Kecelakaan Lalu lintas</option>
-                        <option value="Terpeleset">Terpeleset</option>
-                        <option value="Terjatuh">Terjatuh</option>
-                        <option value="Tersandung">Tersandung</option>
-                        <option value="Tertabrak">Tertabrak</option>
-                        <option value="Tersayat">Tersayat</option>
-                        <option value="Tertimpa">Tertimpa</option>
-			<option value="Tertusuk Jarum">Tertusuk Jarum</option>
-                        <option value="Lainnya">Lainnya</option>
-                    </select>
-
-                    <div id="box-lainnya" class="hidden">
-                        <input type="text" class="form-control" name="kategori_lainnya_text" placeholder="Sebutkan jenis kecelakaan lainnya...">
-                    </div>
-                    
-                    <hr style="border-top:1px dashed #ddd; margin: 20px 0;">
-
-                    <div class="section-header"><i class="fas fa-id-card"></i> <span>Data Pegawai / Korban</span></div>
-                    <label>Nama Korban / Pegawai</label><input type="text" class="form-control" name="nama_pegawai">
-                    <div class="row">
-                        <div class="col"><label>Unit Kerja/Ruangan</label><input type="text" class="form-control" name="unit_kerja" id="inputUnitKerja"></div>
-                        <div class="col"><label>Tempat, Tgl Lahir</label><input type="text" class="form-control" name="ttl" placeholder="Bogor, 01-01-1990"></div>
-                    </div>
-                    <div class="row">
-                        <div class="col"><label>NIP</label><input type="text" class="form-control" name="nip"></div>
-                        <div class="col"><label>Status</label><select class="form-control" name="status_pegawai"><option value="PNS">PNS</option><option value="PPPK">PPPK</option><option value="Honorer">Honorer</option><option value="Outsourcing">Outsourcing</option></select></div>
-                    </div>
-                    <div class="row">
-                        <div class="col"><label>Umur (Thn)</label><input type="number" class="form-control" name="umur"></div>
-                        <div class="col"><label>Gender</label><select class="form-control" name="gender"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
-                    </div>
-                    <label>Jabatan</label><input type="text" class="form-control" name="jabatan">
-
-                    <div class="section-header"><i class="fas fa-exclamation-triangle"></i> <span>Rincian Kejadian</span></div>
-                    <label>Waktu Kejadian</label><input type="datetime-local" class="form-control" name="waktu_kejadian">
-                    <label>Lokasi Detail</label><input type="text" class="form-control" name="ruangan_korban" placeholder="Detail lokasi...">
-                    <label>Kronologi Singkat</label><textarea class="form-control" name="deskripsi" rows="3" placeholder="Jelaskan kronologi..."></textarea>
-                    <label>Jenis Kecelakaan Kerja</label><select class="form-control" name="jenis_insiden_k3"><option value="" disabled selected>-- Pilih Jenis --</option><option value="KNC">KNC (Near Miss)</option><option value="KTC">KTC (Non-Harm)</option><option value="KTD">KTD (Sentinel)</option></select>
-                    <label>Akibat / Cedera</label><textarea class="form-control" name="akibat" rows="2"></textarea>
-                    <label>Saksi Mata</label><input type="text" class="form-control" name="saksi">
-                    <label>Kecelakaan kerja terjadi pada?</label><select class="form-control" name="terjadi_pada"><option value="Pasien">Pasien</option><option value="Karyawan">Karyawan</option><option value="Pengunjung">Pengunjung</option><option value="Lainnya">Lainnya</option></select>
-                    <label>Tempat Kejadian Kecelakaan</label><input type="text" class="form-control" name="tempat_kejadian">
-
-                    <div class="section-header"><i class="fas fa-first-aid"></i> <span>Penanganan</span></div>
-                    <label>Tindakan Awal</label><textarea class="form-control" name="tindakan" rows="2"></textarea>
-                    <label>Dilakukan Oleh</label><input type="text" class="form-control" name="tindakan_oleh">
-                    <label>Kejadian Berulang?</label><select class="form-control" name="kejadian_berulang"><option value="Ya">Ya</option><option value="Tidak">Tidak</option></select>
-                    <label>Grading Risiko</label><select class="form-control" name="grading"><option value="Biru">Biru (Ringan)</option><option value="Hijau">Hijau (Sedang)</option><option value="Kuning">Kuning (Berat)</option><option value="Merah">Merah (Ekstrem)</option></select>
-                </div>
-
-                <div id="fields-tumpahan" class="hidden">
-                    <div class="section-header"><i class="fas fa-exclamation-triangle"></i> <span>Laporan Tumpahan</span></div>
-                    
-                    <label>Waktu Pelaporan (Tanggal & Jam)</label>
-                    <input type="datetime-local" class="form-control" name="waktu_kejadian_tumpahan" onchange="document.getElementsByName('waktu_kejadian')[0].value = this.value">
-
-                    <label>Telah Terjadi Tumpahan:</label>
-                    <select class="form-control" name="jenis_tumpahan" onchange="document.getElementsByName('jenis_insiden_k3')[0].value = this.value">
-                        <option value="Tumpahan Bahan B3">Tumpahan Bahan B3</option>
-                        <option value="Tumpahan Limbah B3">Tumpahan Limbah B3</option>
-                    </select>
-
-                    <label>Jenis Bahan</label>
-                    <input type="text" class="form-control" name="jenis_bahan" placeholder="Contoh: Formalin, Alkohol..." oninput="document.getElementsByName('deskripsi')[0].value = this.value">
-
-                    <label>Lokasi Kejadian</label>
-                    <input type="text" class="form-control" name="lokasi_tumpahan" placeholder="Detail lokasi..." oninput="document.getElementsByName('tempat_kejadian')[0].value = this.value">
-
-                    <label>Jumlah Estimasi</label>
-                    <input type="text" class="form-control" name="jml_estimasi" placeholder="Contoh: 500 ml" oninput="document.getElementsByName('akibat')[0].value = this.value">
-
-                    <label>Apakah tumpahan mengenai seseorang?</label>
-                    <select class="form-control" name="kena_orang" onchange="document.getElementsByName('saksi')[0].value = this.value">
-                        <option value="Tidak">Tidak</option>
-                        <option value="Ya">Ya</option>
-                    </select>
-
-                    <label>Penanganan yang telah dilakukan</label>
-                    <textarea class="form-control" name="penanganan_b3" rows="3" placeholder="Jelaskan penanganan..." oninput="document.getElementsByName('tindakan')[0].value = this.value"></textarea>
-
-                    <label>Kondisi tempat setelah penanganan</label>
-                    <textarea class="form-control" name="kondisi_setelah" rows="2" placeholder="Kondisi akhir..." oninput="document.getElementsByName('ket_lain')[0].value = this.value"></textarea>
-
-                    <div class="section-header"><i class="fas fa-camera"></i> <span>Foto Bukti (Kamera)</span></div>
-                    <label class="camera-btn"><i class="fas fa-camera"></i> AMBIL FOTO TUMPAHAN
-                        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="compressImageTumpahan(this)">
-                    </label>
-                    <p id="compress-status-tumpahan" style="font-size:0.8rem; color:gray; text-align:center;">Belum ada foto.</p>
-                    <img id="preview-img-tumpahan" class="camera-preview">
-                </div>
-
-                <div id="fields-b3-inspeksi" class="hidden">
-                    <div class="section-header"><i class="fas fa-clipboard-check"></i> <span>Data Inspeksi B3</span></div>
-                    <label>Tanggal Pemeriksaan</label><input type="date" class="form-control" name="tgl_periksa" id="inputTglPeriksa">
-                    
-                    <div class="row">
-                        <div class="col"><label>Jml B3 Medis</label><input type="number" class="form-control" name="jml_b3_medis" id="in_jml_b3_medis" placeholder="0"></div>
-                        <div class="col"><label>Jml B3 Lab</label><input type="number" class="form-control" name="jml_b3_lab" id="in_jml_b3_lab" placeholder="0"></div>
-                        <div class="col"><label>Jml B3 RT</label><input type="number" class="form-control" name="jml_b3_rt" id="in_jml_b3_rt" placeholder="0"></div>
-                    </div>
-
-                    <label style="margin-top:10px;">Checklist Kelayakan:</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item"><input type="checkbox" name="cek_simbol" id="chk_cek_simbol" value="Ya"> Kemasan dilengkapi simbol B3</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_kondisi" id="chk_cek_kondisi" value="Ya"> Kondisi kemasan B3 baik</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_label" id="chk_cek_label" value="Ya"> Ada keterangan jenis & jumlah</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_pisah" id="chk_cek_pisah" value="Ya"> Penyimpanan terpisah dg non-B3</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_msds" id="chk_cek_msds" value="Ya"> Dilengkapi MSDS</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_spillkit" id="chk_cek_spillkit" value="Ya"> Tersedia Spill Kit</div>
-                        <div class="checkbox-item"><input type="checkbox" name="cek_expired" id="chk_cek_expired" value="Ya"> B3 Layak Pakai / Tidak Expired</div>
-                    </div>
-
-                    <div class="section-header"><i class="fas fa-vials"></i> <span>Daftar B3 di Ruangan Ini</span></div>
-                    <label class="text-primary">1. B3 Medis / Obat-obatan</label><div id="container-b3-medis" class="checkbox-group"></div>
-                    <label class="text-primary">2. B3 Laboratorium</label><div id="container-b3-lab" class="checkbox-group"></div>
-                    <label class="text-primary">3. B3 Rumah Tangga</label><div id="container-b3-rt" class="checkbox-group"></div>
-
-                    <label>Keterangan Lainnya</label><textarea class="form-control" name="ket_lain" rows="2" placeholder="Catatan tambahan..."></textarea>
-                    
-                    <div class="section-header"><i class="fas fa-camera"></i> <span>Foto Bukti (Kamera)</span></div>
-                    <label class="camera-btn"><i class="fas fa-camera"></i> AMBIL FOTO INSPEKSI<input type="file" accept="image/*" capture="environment" style="display:none" onchange="compressImage(this)"></label>
-                    <p id="compress-status" style="font-size:0.8rem; color:gray; text-align:center;">Belum ada foto.</p>
-                    <img id="preview-img" class="camera-preview">
-                </div>
-                
-                <div id="b3-field-link" class="hidden">
-                    <div class="section-header"><i class="fas fa-camera"></i> <span>Bukti Foto B3</span></div>
-                    <label>Link Google Drive / Foto</label><input type="text" class="form-control" name="doc_b3" id="inputDocB3" placeholder="Paste link foto disini...">
-                </div>
-
-                <div id="wrapper-signature">
-                    <div class="section-header"><i class="fas fa-signature"></i> <span>Tanda Tangan Pelapor / Pembuat Laporan</span></div>
-                    <p style="font-size:0.8rem; color:#6b7280; margin-bottom:5px;">Silakan tanda tangan di kotak di bawah ini:</p>
-                    <div class="signature-wrapper"><button type="button" class="clear-sig-btn" onclick="clearSignature()"><i class="fas fa-eraser"></i> Hapus</button><canvas id="signature-pad"></canvas></div>
-                </div>
-
-                <button type="button" class="btn-submit" onclick="kirimLaporan()"><i class="fas fa-paper-plane"></i> KIRIM LAPORAN</button>
-                <button type="button" class="btn-back" onclick="location.reload()">Batal</button>
+    <div id="landing-page" class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center space-y-8 border border-gray-100 transform transition-all duration-300">
+        <div class="space-y-3">
+            <div class="bg-amber-50 w-24 h-24 mx-auto rounded-full flex items-center justify-center shadow-sm border border-amber-100">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-14 h-14 text-amber-500 animate-pulse" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                </svg>
             </div>
-        </form>
-    </div>
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight uppercase">Pelaporan SPILLKIT</h1>
+            <p class="text-xs text-gray-500 max-w-xs mx-auto">Laporkan insiden tumpahan Bahan Berbahaya dan Beracun (B3) / Limbah B3 maksimal 2x24 jam.</p>
+        </div>
 
-    <div id="history-page" class="hidden">
-        <div class="card">
-            <h2 style="margin-top:0; text-align:center; color:var(--text); font-size:1.2rem;">Riwayat Pelaporan</h2>
-            <div style="text-align:center; margin-bottom:20px; font-size:0.9rem; color:#6b7280; border-bottom:1px solid #eee; padding-bottom:10px;">Lokasi: <b id="history-location-title">-</b></div>
-            <div id="history-loading" style="text-align:center; padding:20px; color:#6b7280;"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
-            <div id="history-list"></div>
-            <button type="button" class="btn-back" onclick="kembaliKeMenu()">Kembali ke Menu</button>
+        <div class="flex flex-col gap-3 pt-2">
+            <button onclick="navigasiKe('form-page')" type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-600/20 flex justify-center items-center gap-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-sm tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                LAPORAN SPILLKIT
+            </button>
+            
+            <button onclick="navigasiKe('panduan-page')" type="button" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-semibold py-4 px-6 rounded-xl shadow-lg shadow-slate-800/10 flex justify-center items-center gap-3 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-sm tracking-wide">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                PANDUAN PELAPORAN
+            </button>
+        </div>
+
+        <div class="pt-6 border-t border-gray-100">
+            <span class="text-xs font-bold text-gray-400 tracking-wider">@by K3KL</span>
         </div>
     </div>
-    
-    <div class="app-footer">&copy; 2026 Sistem Pelaporan Terpadu <b>by K3KL</b></div>
-</div>
 
-<script>
-    // 🚀 URL FIREBASE K3KL
-    const FIREBASE_K3_URL = "https://sikasik-7b9ce-default-rtdb.asia-southeast1.firebasedatabase.app/LAPORAN_K3KL.json"; 
-    
-    let historyData = [];
-    const urlParams = new URLSearchParams(window.location.search);
-    const ruang = urlParams.get('ruang') || "Area Umum";
-    
-    document.getElementById('inputRuangan').value = ruang;
-    document.getElementById('inputUnitKerja').value = ruang; 
-    document.getElementById('lokasi-saat-ini').innerText = ruang;
 
-    const databaseB3 = {
-        "Farmasi": { medis: ["Alkohol 70%", "Alkohol 96%", "H2O2", "Betadine", "Formalin"], lab: [], rt: ["Handsoap", "Bayclin", "Pengharum Ruangan", "Vixal", "Stella"] },
-        "Laboratorium": { medis: ["Alkohol 70%"], lab: ["Metanol", "Xylol", "Formalin", "Reagen A", "Reagen B"], rt: ["Sunlight", "Handsoap", "Wipol"] },
-        "IGD": { medis: ["Oksigen Tabung", "Alkohol 70%", "Povidone Iodine"], lab: [], rt: ["Pembersih Lantai", "Sabun Cuci Tangan", "Baygon"] },
-        "Radiologi": { medis: [], lab: ["Cairan Developer", "Cairan Fixer"], rt: ["Pembersih Kaca"] },
-        "Gizi": { medis: [], lab: [], rt: ["Gas LPG", "Sabun Cuci Piring", "Pembersih Kerak"] },
-        "Area Umum": { medis: [], lab: [], rt: ["Pembersih Lantai", "Pengharum Ruangan", "Hand Sanitizer", "Sabun Cuci Tangan"] }
-    };
+    <div id="panduan-page" class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-6 space-y-6 border border-gray-100 hidden transform transition-all duration-300">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                📖 Panduan Penggunaan Spillkit
+            </h2>
+            <button onclick="navigasiKe('landing-page')" class="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-lg transition">
+                Kembali
+            </button>
+        </div>
 
-    let signaturePad;
-    const canvas = document.getElementById('signature-pad');
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext("2d").scale(ratio, ratio);
-        if(signaturePad) signaturePad.clear(); 
-    }
-    window.addEventListener("DOMContentLoaded", () => {
-        signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
-        resizeCanvas();
-    });
-    window.addEventListener("resize", resizeCanvas);
-    function clearSignature() { signaturePad.clear(); }
+        <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-md">
+            <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video Panduan Penanganan Tumpahan Spillkit" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
 
-    function bukaForm(jenis) {
-        document.getElementById('menu-page').classList.add('hidden');
-        document.getElementById('history-page').classList.add('hidden');
-        document.getElementById('form-page').classList.remove('hidden');
-        document.getElementById('inputJenis').value = jenis;
-        document.getElementById('form-title').innerText = "Form " + jenis;
+        <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-3">
+            <h3 class="text-sm font-bold text-blue-900 flex items-center gap-1.5 uppercase tracking-wide">
+                📋 Langkah-Langkah Pelaporan:
+            </h3>
+            <ol class="list-decimal list-inside text-xs text-gray-600 space-y-2.5 leading-relaxed">
+                <li><span class="font-semibold text-gray-800">Scan Barcoede:</span> Scan barcode menggunakan handphone dan nanti akan muncul menu utama pelaporan SPILLKIT.</li>
+                <li><span class="font-semibold text-gray-800">Buka Aplikasi Form:</span> Klik menu <span class="text-blue-600 font-semibold">Laporan Spillkit</span>.</li> nanti akan membuka form pelaporan.</li>
+                <li><span class="font-semibold text-gray-800">Lengkapi Data:</span> Isi Informasi Pelapor beserta detail Informasi Tumpahan (Lokasi, Waktu, Estimasi jumlah).</li>
+                <li><span class="font-semibold text-gray-800">Lampirkan Bukti Foto:</span> Klik tombol Ambil Foto untuk mengunggah dokumentasi kondisi tumpahan/pasca penanganan.</li>
+                <li><span class="font-semibold text-gray-800">Tanda Tangan digital:</span> Bubuhkan tanda tangan Anda langsung pada kotak canvas tanda tangan yang disediakan.</li>
+                <li><span class="font-semibold text-gray-800">Kirim:</span> Tekan tombol Kirim. Laporan otomatis tersimpan dan diteruskan ke tim K3KL.</li>
+            </ol>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100 text-center">
+            <span class="text-xs font-bold text-gray-400 tracking-wider">@by K3KL</span>
+        </div>
+    </div>
+
+
+    <div id="form-page" class="hidden w-full max-w-md">
         
-        const fieldsKecelakaan = document.getElementById('fields-kecelakaan');
-        const fieldsB3Inspeksi = document.getElementById('fields-b3-inspeksi');
-        const fieldsTumpahan = document.getElementById('fields-tumpahan'); 
-        
-        const b3FieldLink = document.getElementById('b3-field-link');
-        const waWrapper = document.getElementById('wrapper-wa');
-        const sigWrapper = document.getElementById('wrapper-signature');
-
-        // RESET SEMUA HIDE DULU
-        fieldsKecelakaan.classList.add('hidden');
-        fieldsB3Inspeksi.classList.add('hidden');
-        fieldsTumpahan.classList.add('hidden');
-        b3FieldLink.classList.add('hidden'); 
-
-        if(jenis === 'Laporan Bahan B3') {
-            // MODE INSPEKSI B3
-            fieldsB3Inspeksi.classList.remove('hidden');
-            waWrapper.classList.add('hidden');
-            sigWrapper.classList.add('hidden');
-            document.getElementById('inputWA').removeAttribute('required'); 
-            document.getElementById('lbl-pelapor').innerText = "Nama Pemeriksa";
-            document.getElementById('inputTglPeriksa').valueAsDate = new Date();
-            generateB3Checklist(ruang);
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
             
-        } else if (jenis === 'Tumpahan B3') {
-            // MODE TUMPAHAN B3
-            fieldsTumpahan.classList.remove('hidden');
-            waWrapper.classList.add('hidden'); // WA HILANG
-            document.getElementById('inputWA').removeAttribute('required');
-            sigWrapper.classList.remove('hidden'); // TTD ADA
-            document.getElementById('lbl-pelapor').innerText = "Nama Pelapor";
-            
-            // Default Values
-            document.getElementsByName('jenis_insiden_k3')[0].value = "Tumpahan Bahan B3";
-            document.getElementsByName('saksi')[0].value = "Tidak"; 
+            <h1 class="text-xl font-bold text-blue-600 text-center mb-6">Form Tumpahan B3/Limbah B3 (SPILLKIT)</h1>
 
-        } else {
-            // MODE KECELAKAAN KERJA (NORMAL)
-            fieldsKecelakaan.classList.remove('hidden');
-            waWrapper.classList.remove('hidden');
-            sigWrapper.classList.remove('hidden');
-            document.getElementById('inputWA').setAttribute('required', 'true');
-            document.getElementById('lbl-pelapor').innerText = "Nama Pelapor";
-        }
-        window.scrollTo(0,0);
-        setTimeout(resizeCanvas, 100);
-    }
-
-    // --- FUNGSI TOGGLE JENIS KECELAKAAN LAINNYA ---
-    function toggleJenisLainnya(selectObj) {
-        const boxLainnya = document.getElementById('box-lainnya');
-        if(selectObj.value === 'Lainnya') {
-            boxLainnya.classList.remove('hidden');
-        } else {
-            boxLainnya.classList.add('hidden');
-            document.getElementsByName('kategori_lainnya_text')[0].value = ''; // Reset jika batal
-        }
-    }
-
-    function compressImage(input) { processImage(input, 'preview-img', 'compress-status'); }
-    function compressImageTumpahan(input) { processImage(input, 'preview-img-tumpahan', 'compress-status-tumpahan'); }
-
-    function processImage(input, previewId, statusId) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const reader = new FileReader();
-            document.getElementById(statusId).innerText = "Mengompres foto...";
-            reader.onload = function(e) {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 800; const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('inputDocB3').value = dataUrl;
-                    const preview = document.getElementById(previewId);
-                    preview.src = dataUrl; preview.style.display = 'block';
-                    document.getElementById(statusId).innerText = "Foto siap.";
-                }
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function generateB3Checklist(ruangName) {
-        const data = databaseB3[ruangName] || databaseB3["Area Umum"];
-        function renderList(containerId, items, category) {
-            const container = document.getElementById(containerId); container.innerHTML = "";
-            if(items.length === 0) { container.innerHTML = "<small style='color:#9ca3af'>Tidak ada data B3.</small>"; return; }
-            items.forEach(item => {
-                const div = document.createElement('div'); div.className = 'checkbox-item';
-                div.innerHTML = `<input type="checkbox" class="chk-${category}" value="${item}"> ${item}`;
-                container.appendChild(div);
-            });
-        }
-        renderList('container-b3-medis', data.medis, 'medis'); renderList('container-b3-lab', data.lab, 'lab'); renderList('container-b3-rt', data.rt, 'rt');
-    }
-
-    function kembaliKeMenu() {
-        document.getElementById('form-page').classList.add('hidden'); document.getElementById('history-page').classList.add('hidden'); document.getElementById('menu-page').classList.remove('hidden');
-    }
-
-    function kirimLaporan() {
-        const form = document.getElementById('laporanForm');
-        const jenis = document.getElementById('inputJenis').value;
-        const formData = new FormData(form);
-
-        if (jenis !== 'Laporan Bahan B3') {
-            if (signaturePad.isEmpty()) { Swal.fire({icon: 'warning', title: 'Tanda Tangan Kosong', text: 'Mohon tanda tangan.'}); return; }
-            formData.set('ttd_image', signaturePad.toDataURL());
-            if(!form.checkValidity()) { Swal.fire({icon: 'warning', title: 'Data Belum Lengkap', text: 'Mohon lengkapi field wajib.'}); return; }
-        }
-
-        // --- GABUNGKAN JENIS KECELAKAAN KE DESKRIPSI (Agar tersimpan tanpa ubah backend) ---
-        if(jenis === 'Kecelakaan Kerja') {
-            const kategori = document.getElementsByName('kategori_kecelakaan')[0].value;
-            const lain = document.getElementsByName('kategori_lainnya_text')[0].value;
-            let finalKat = kategori === 'Lainnya' ? (lain || 'Lainnya') : kategori;
-            
-            if(finalKat) {
-                // Tambahkan info kategori di depan deskripsi
-                const oldDesc = formData.get('deskripsi');
-                formData.set('deskripsi', `[Kategori: ${finalKat}] ${oldDesc}`);
-            }
-        }
-
-        if(jenis === 'Laporan Bahan B3') {
-            function getList(className) {
-                const checked = document.querySelectorAll(`.${className}:checked`);
-                let vals = []; checked.forEach(c => vals.push(c.value));
-                return vals.join(", ");
-            }
-            formData.set('list_b3_medis', getList('chk-medis'));
-            formData.set('list_b3_lab', getList('chk-lab'));
-            formData.set('list_b3_rt', getList('chk-rt'));
-            ['in_jml_b3_medis', 'in_jml_b3_lab', 'in_jml_b3_rt'].forEach(id => {
-                const el = document.getElementById(id); formData.set(el.name, el.value || '0');
-            });
-            const chkIds = ['chk_cek_simbol', 'chk_cek_kondisi', 'chk_cek_label', 'chk_cek_pisah', 'chk_cek_msds', 'chk_cek_spillkit', 'chk_cek_expired'];
-            chkIds.forEach(id => {
-                const el = document.getElementById(id); formData.set(el.name, el.checked ? 'Ya' : 'Tidak');
-            });
-        }
-
-        Swal.fire({title: 'Sedang Mengirim...', html: 'Mohon tunggu...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-        
-        // 🚀 TRANSLATOR MESIN MENUJU FIREBASE
-        const payload = {};
-        formData.forEach((value, key) => { payload[key] = value; });
-        
-        payload.tanggal = payload.waktu_kejadian || payload.waktu_kejadian_tumpahan || payload.tgl_periksa || new Date().toISOString();
-        payload.lokasi = payload.ruangan || payload.unit_kerja || payload.lokasi_tumpahan;
-        payload.petugas = payload.pelapor || payload.nama_pegawai;
-        payload.keterangan = payload.deskripsi || payload.penanganan_b3 || payload.ket_lain;
-        payload.jenisLaporan = payload.jenis;
-        payload.imageData = payload.ttd_image || payload.doc_b3 || '-';
-        payload.status = 'Menunggu';
-
-        fetch(FIREBASE_K3_URL, { 
-            method: "POST", 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload) 
-        })
-        .then(r => r.json())
-        .then(data => {
-            if(data && data.name) { 
-                let ticketId = data.name.length > 6 ? data.name.substring(data.name.length - 6).toUpperCase() : data.name;
-                Swal.fire({icon: 'success', title: 'Berhasil', text: 'Laporan tersimpan! ID: ' + ticketId}).then(() => location.reload()); 
-            } else { Swal.fire('Gagal', 'Error server', 'error'); }
-        }).catch(err => Swal.fire('Error', 'Gagal koneksi', 'error'));
-    }
-
-    function bukaRiwayat() {
-        document.getElementById('menu-page').classList.add('hidden'); document.getElementById('history-page').classList.remove('hidden');
-        document.getElementById('history-location-title').innerText = ruang; 
-        const list = document.getElementById('history-list'); const loading = document.getElementById('history-loading');
-        list.innerHTML = ''; loading.style.display = 'block';
-        
-        // 🚀 MENGAMBIL DAN MENERJEMAHKAN DARI FIREBASE
-        fetch(FIREBASE_K3_URL).then(res => res.json()).then(firebaseData => {
-            let data = [];
-            if (firebaseData && firebaseData !== 'null') {
-                Object.keys(firebaseData).forEach(key => {
-                    let v = firebaseData[key];
-                    data.push({
-                        Ticket_ID: key.length > 6 ? key.substring(key.length - 6).toUpperCase() : key,
-                        Waktu_Lapor: v.tanggal,
-                        Waktu_Kejadian: v.tanggal,
-                        tgl_periksa: v.tanggal,
-                        Pelapor: v.petugas,
-                        Nama_Pegawai: v.petugas,
-                        Nama_Pemeriksa: v.petugas,
-                        Ruangan: v.lokasi,
-                        Ruangan_Korban: v.lokasi,
-                        Unit_Kerja: v.lokasi,
-                        lokasi_tumpahan: v.lokasi,
-                        Jenis_Laporan: v.jenisLaporan,
-                        Jenis_Detail: v.jenisLaporan,
-                        Deskripsi: v.keterangan,
-                        ket_lain: v.keterangan,
-                        Status: v.status || 'Menunggu',
-                        Doc_B3: v.imageData,
-                        ttd_image: v.imageData,
-                        firebaseKey: key, 
-                        Inv_Kondisi: v.Inv_Kondisi || "",
-                        Inv_Tindakan: v.Inv_Tindakan || "",
-                        Inv_Uraian: v.Inv_Uraian || "",
-                        Inv_Petugas: v.Inv_Petugas || "",
-                        ...v
-                    });
-                });
-            }
-            
-            const filteredData = data.filter(row => row.Ruangan === ruang);
-            historyData = filteredData; loading.style.display = 'none'; filteredData.reverse(); 
-            if(filteredData.length === 0) { list.innerHTML = `<div style="text-align:center; color:#9ca3af; padding:20px;">Belum ada riwayat di <b>${ruang}</b>.</div>`; return; }
-            filteredData.forEach((row, index) => {
-                // FILTER: HANYA TAMPILKAN KECELAKAAN KERJA & TUMPAHAN B3 (Hide Laporan Bahan B3)
-                if (row.Jenis_Laporan === 'Laporan Bahan B3' || row.Jenis_Laporan === 'Bahan B3') return;
-
-                let statusBadge = row.Status === 'Selesai' ? `<span class="status-badge status-done">SELESAI</span>` : `<span class="status-badge status-wait">MENUNGGU</span>`;
+            <form action="#" method="POST" class="space-y-6">
                 
-                // TOMBOL PDF (LAPORAN SELALU ADA)
-                let btnHtml = `<button onclick="generatePDF(${index})" class="btn-mini btn-pdf-user"><i class="fas fa-file-pdf"></i> Laporan</button>`;
+                <div>
+                    <div class="flex items-center gap-2 mb-3 border-b border-gray-100 pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600">
+                          <path fill-rule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clip-rule="evenodd" />
+                        </svg>
+                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">DATA PELAPOR</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Nama Pelapor</label>
+                            <input type="text" name="nama_pelapor" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Nama Lengkap Anda" required>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Jenis Kelamin</label>
+                                <select name="jenis_kelamin" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="Laki-laki">Laki-laki</option>
+                                    <option value="Perempuan">Perempuan</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Umur (Tahun)</label>
+                                <input type="number" name="umur" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 28">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Jabatan</label>
+                            <input type="text" name="jabatan" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Perawat, Cleaning Service...">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Unit Kerja</label>
+                            <input type="text" name="unit_kerja" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Laboratorium, Ruang Utari...">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3 mt-8 border-b border-gray-100 pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600">
+                          <path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">LAPORAN TUMPAHAN</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Waktu Pelaporan (Tanggal & Jam)</label>
+                            <input type="datetime-local" name="waktu_pelaporan" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Telah Terjadi Tumpahan:</label>
+                            <select name="jenis_tumpahan_kategori" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" required>
+                                <option value="" disabled selected>-- Pilih Jenis Tumpahan --</option>
+                                <option value="B3">B3 (Bahan Berbahaya Beracun)</option>
+                                <option value="Infeksius">Infeksius</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-2">Jenis Tumpahan</label>
+                            <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="jenis_tumpahan[]" value="Darah" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                    <span>Darah</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="jenis_tumpahan[]" value="Cairan Tubuh" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                    <span>Cairan Tubuh</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="jenis_tumpahan[]" value="Oli" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                    <span>Oli</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="jenis_tumpahan[]" value="Reagen" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+                                    <span>Reagen</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="jenis_tumpahan[]" value="Lainnya" id="checkLainnya" class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4" onchange="toggleLainnya()">
+                                    <span>Lainnya</span>
+                                </label>
+                            </div>
+                            
+                            <input type="text" name="jenis_tumpahan_lainnya" id="inputLainnya" class="hidden w-full mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Sebutkan jenis lainnya...">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Lokasi Kejadian</label>
+                            <input type="text" name="lokasi_kejadian" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Detail lokasi...">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Jumlah Estimasi</label>
+                            <input type="text" name="jumlah_estimasi" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 500 ml">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Apakah tumpahan mengenai seseorang?</label>
+                            <select name="mengenai_seseorang" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="Tidak">Tidak</option>
+                                <option value="Ya">Ya</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Penanganan yang telah dilakukan</label>
+                            <textarea name="penanganan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Jelaskan penanganan..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">Kondisi tempat setelah penanganan</label>
+                            <textarea name="kondisi_akhir" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" placeholder="Kondisi akhir..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3 mt-8 border-b border-gray-100 pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600">
+                          <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
+                          <path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">FOTO BUKTI (KAMERA)</h2>
+                    </div>
+                    
+                    <input type="file" id="foto_bukti" name="foto_bukti" accept="image/*" class="hidden" onchange="updateFileName(this)">
+                    
+                    <button type="button" onclick="document.getElementById('foto_bukti').click()" class="w-full bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold py-2.5 rounded-md flex justify-center items-center gap-2 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                          <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
+                          <path fill-rule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3h-15a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0zm12-1.5a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                        </svg>
+                        AMBIL FOTO TUMPAHAN
+                    </button>
+                    <p id="nama_foto" class="text-[11px] text-gray-400 text-center mt-2">Belum ada foto.</p>
+                </div>
+
+                <div>
+                    <div class="flex items-center gap-2 mb-3 mt-8 border-b border-gray-100 pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-blue-600">
+                          <path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.158 3.71 3.71 1.159-1.157a2.625 2.625 0 000-3.711z" />
+                          <path d="M19.54 7.5l-3.71-3.71L4.016 15.605A2.25 2.25 0 003 17.195V21h3.805c.596 0 1.168-.237 1.59-.659L19.54 7.5zM12 17.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75z" />
+                    </svg>
+                        <h2 class="text-sm font-bold text-blue-800 uppercase tracking-wide">TANDA TANGAN PELAPOR / PEMBUAT LAPORAN</h2>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mb-2">Silakan tanda tangan di kotak di bawah ini:</p>
+                    
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-lg h-40 bg-gray-50 flex items-center justify-center">
+                        
+                        <button type="button" id="btn-hapus-ttd" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold py-1 px-2 rounded flex items-center gap-1 shadow-sm transition z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                              <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                            </svg>
+                            Hapus
+                        </button>
+                        
+                        <canvas id="signature-pad" class="w-full h-full cursor-crosshair rounded-lg absolute top-0 left-0"></canvas>
+                    </div>
+                    <input type="hidden" name="tanda_tangan" id="tanda_tangan_data">
+                </div>
+
+                <div class="mt-8 pt-4">
+                    <button type="submit" onclick="saveSignature()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 rounded-md flex justify-center items-center gap-2 shadow-md transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 -rotate-45 mb-1">
+                          <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                        </svg>
+                        KIRIM
+                    </button>
+                    
+                    <a href="#" onclick="navigasiKe('landing-page')" class="block text-center text-xs text-gray-500 mt-4 hover:text-gray-800 transition">
+                        Batal
+                    </a>
+                </div>
                 
-                // TOMBOL PDF INVESTIGASI (HANYA JIKA SELESAI DAN BUKAN TUMPAHAN B3)
-                if (row.Status === 'Selesai' && row.Jenis_Laporan !== 'Tumpahan B3' && row.Jenis_Laporan !== 'Tumpahan') {
-                    btnHtml += `<button onclick="generateInvestigationPDF(${index})" class="btn-mini btn-pdf-inv"><i class="fas fa-file-contract"></i> Investigasi</button>`;
-                }
+                <div class="text-center text-xs font-semibold text-gray-400 mt-6 pt-4 border-t border-gray-100">
+                    @by K3KL
+                </div>
 
-                let item = `<div class="history-item"><div class="history-header"><span style="font-weight:bold;">${row.Jenis_Laporan}</span>${statusBadge}</div><div style="font-size:0.8rem; color:#6b7280;">${new Date(row.Waktu_Lapor).toLocaleDateString()}</div><div style="font-size:0.85rem; margin-top:5px;">${row.Deskripsi || row.ket_lain || '-'}</div><div style="margin-top:8px;">${btnHtml}</div></div>`;
-                list.innerHTML += item;
-            });
-        }).catch(err => {
-            loading.innerHTML = 'Gagal memuat riwayat.';
-        });
-    }
+            </form>
+        </div>
+        </div>
 
-    // --- SMART DATA READER HELPER (DIPERLUKAN UNTUK PDF GENERATOR) ---
-    const getVal = (item, keys) => {
-        for (let k of keys) {
-            if (item[k] !== undefined && item[k] !== null && item[k] !== "") return item[k];
-        }
-        const clean = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const targetKeys = keys.map(k => clean(k));
-        for (let prop in item) {
-            if (targetKeys.includes(clean(prop))) {
-                return item[prop];
+    <script>
+        // Fungsi untuk handle perpindahan halaman agar mulus (Landing, Panduan, & Form)
+        function navigasiKe(idHalaman) {
+            document.getElementById('landing-page').classList.add('hidden');
+            document.getElementById('panduan-page').classList.add('hidden');
+            document.getElementById('form-page').classList.add('hidden');
+
+            document.getElementById(idHalaman).classList.remove('hidden');
+
+            // Khusus jika membuka halaman Form, kalkulasi ulang ukuran canvas tanda tangan agar presisi
+            if (idHalaman === 'form-page') {
+                setTimeout(resizeCanvas, 50);
             }
         }
-        return ''; 
-    };
 
-    // --- GENERATE PDF LAPORAN (SAMA PERSIS ADMIN) ---
-    function generatePDF(index) {
-        const data = historyData[index]; 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        // 1. Script untuk memunculkan textbox "Lainnya"
+        function toggleLainnya() {
+            const checkBox = document.getElementById("checkLainnya");
+            const inputField = document.getElementById("inputLainnya");
+            
+            if (checkBox.checked) {
+                inputField.classList.remove("hidden");
+                inputField.focus();
+            } else {
+                inputField.classList.add("hidden");
+                inputField.value = ""; 
+            }
+        }
 
-        // 1. FORMAT KHUSUS: TUMPAHAN B3
-        if (data.Jenis_Laporan === 'Tumpahan B3') {
-            doc.setFontSize(12); doc.setFont("helvetica", "bold");
-            let judul = "LAPORAN TUMPAHAN BAHAN BERBAHAYA DAN BERACUN";
-            if(data.Jenis_Detail && data.Jenis_Detail.toLowerCase().includes("limbah")) {
-                judul = "LAPORAN TUMPAHAN LIMBAH BAHAN BERBAHAYA DAN BERACUN";
+        // 2. Script untuk update nama file foto
+        function updateFileName(input) {
+            const fileNameDisplay = document.getElementById('nama_foto');
+            if (input.files && input.files.length > 0) {
+                fileNameDisplay.textContent = "Foto terpilih: " + input.files[0].name;
+                fileNameDisplay.classList.add('text-green-600');
+                fileNameDisplay.classList.remove('text-gray-400');
+            } else {
+                fileNameDisplay.textContent = "Belum ada foto.";
+                fileNameDisplay.classList.remove('text-green-600');
+                fileNameDisplay.classList.add('text-gray-400');
             }
-            doc.text(judul, 105, 20, null, null, "center");
-            doc.setFontSize(11);
-            doc.text("INSTALASI KESLING DAN K3RS", 105, 30, null, null, "center");
-            doc.text("RS dr. H. MARZOEKI MAHDI BOGOR", 105, 36, null, null, "center");
-            doc.setLineWidth(0.5); doc.line(20, 42, 190, 42);
-            let y = 50; doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            let tglStr = "-", jamStr = "-";
-            if (data.Waktu_Lapor) { 
-                 let d = new Date(data.Waktu_Lapor);
-                 tglStr = d.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'});
-                 jamStr = d.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB";
+        }
+
+        // 3. Script untuk Canvas Tanda Tangan
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        // Atur ukuran canvas agar sesuai dengan container dan tidak blur
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // Validasi pengecekan ukuran container saat dimunculkan
+            if (rect.width > 0) {
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                // Set style garis
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
             }
-            doc.text("Tanggal : " + tglStr, 20, y); y+=6;
-            doc.text("Jam     : " + jamStr, 20, y); y+=10;
-            let introText = "Telah terjadi " + judul.replace("LAPORAN ", "").toLowerCase() + "* dengan rincian informasi";
-            doc.text(introText, 20, y); y+=5; doc.text("sebagai berikut :", 20, y); y+=10;
-            const startX = 20; const colColon = 85; const colVal = 88;
-            const printRow = (label, val) => {
-                doc.text(label, startX, y); doc.text(":", colColon, y);
-                const splitVal = doc.splitTextToSize(String(val || "-"), 105);
-                doc.text(splitVal, colVal, y); y += (splitVal.length * 6) + 4;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        // resizeCanvas() sengaja tidak langsung dipanggil saat onload karena form berstatus 'hidden' di awal.
+
+        // Dapatkan koordinat sentuhan/mouse yang akurat
+        function getCoordinates(event) {
+            const rect = canvas.getBoundingClientRect();
+            if (event.touches && event.touches.length > 0) {
+                return {
+                    x: event.touches[0].clientX - rect.left,
+                    y: event.touches[0].clientY - rect.top
+                };
+            }
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
             };
-            printRow("Jenis Bahan", getVal(data, ['Deskripsi', 'jenis_bahan']));
-            printRow("Lokasi Kejadian", getVal(data, ['Tempat_Detail', 'Ruangan_Korban', 'lokasi_tumpahan']) || data.Ruangan);
-            printRow("Jumlah Estimasi", getVal(data, ['Akibat', 'jml_estimasi']));
-            printRow("Apakah Tumpahan Mengenai seseorang", getVal(data, ['Saksi', 'kena_orang']));
-            printRow("Penanganan yang telah dilakukan", getVal(data, ['Tindakan', 'Tindakan_Awal', 'penanganan_b3', 'Penanganan']));
-            printRow("Keterangan Kondisi Tempat Kejadian\nsetelah dilakukan penanganan", getVal(data, ['ket_lain', 'kondisi_setelah']));
-            y += 15;
-            if (y > 230) { doc.addPage(); y = 40; }
-            const leftX = 40; const rightX = 150;
-            doc.text("Pembuat Laporan", leftX, y, null, null, "center");
-            doc.text("Penerima Laporan", rightX, y, null, null, "center");
-            let ttdSource = getVal(data, ['ttd_image', 'TTD_Pelapor', 'TTD', 'ttd']);
-            if (ttdSource && ttdSource.includes('data:image')) {
-                 try { doc.addImage(ttdSource, 'PNG', leftX - 20, y + 5, 40, 20); } catch(e){}
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+            e.preventDefault(); // Mencegah scrolling halaman di HP saat TTD
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCoordinates(e);
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // Event Listeners Mouse (PC)
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Event Listeners Touch (HP)
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing);
+
+        // Tombol Hapus Tanda Tangan
+        document.getElementById('btn-hapus-ttd').addEventListener('click', function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Simpan TTD sebagai gambar Base64 ke input hidden saat dikirim
+        function saveSignature() {
+            const dataURL = canvas.toDataURL('image/png');
+            document.getElementById('tanda_tangan_data').value = dataURL;
+        }
+
+        // 4. Integrasi Auto-Fill Unit Kerja & Lokasi berdasarkan scan link QR Code (?ruangan=...)
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const namaRuangan = urlParams.get('ruangan'); // Menangkap teks setelah ?ruangan=
+            
+            if (namaRuangan) {
+                // Cari input Unit Kerja dan Lokasi Kejadian di dalam form
+                const inputUnitKerja = document.querySelector('input[name="unit_kerja"]');
+                const inputLokasiKejadian = document.querySelector('input[name="lokasi_kejadian"]');
+                
+                // Isi nilai Unit Kerja otomatis dan kunci biar tidak diedit manual
+                if (inputUnitKerja) {
+                    inputUnitKerja.value = namaRuangan;
+                    inputUnitKerja.readOnly = true; 
+                    inputUnitKerja.classList.add('bg-gray-100', 'text-gray-500', 'cursor-not-allowed');
+                }
+                
+                // Isi nilai Lokasi Kejadian otomatis sebagai nilai default awal
+                if (inputLokasiKejadian) {
+                    inputLokasiKejadian.value = namaRuangan;
+                }
             }
-            y += 35;
-            doc.text(`( ${data.Pelapor} )`, leftX, y, null, null, "center");
-            doc.text("( ........................... )", rightX, y, null, null, "center");
-            y += 6;
-            doc.text("Tanggal Dibuat Laporan : " + tglStr, leftX, y, null, null, "center");
-            doc.text("Tanggal Diterima Laporan : ...................", rightX, y, null, null, "center");
-            let safeID = data.Ticket_ID || 'Doc'; doc.save(`Laporan_Tumpahan_B3_${safeID}.pdf`);
-            return;
-        }
-
-        // 2. FORMAT STANDAR (KECELAKAAN KERJA)
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-        doc.text("LAPORAN PAK / KECELAKAAN KERJA PETUGAS", 105, 20, null, null, "center");
-        doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 26, null, null, "center");
-        let y = 40; doc.setFontSize(10); doc.text("I. DATA PEGAWAI", 20, y); y += 8;
-        doc.setFont("helvetica", "normal"); const startX = 25; const colVal = 70;
-        const rowData = (label, val) => {
-            doc.text(label, startX, y); doc.text(":", colVal, y); doc.text(String(val && val !== "undefined" ? val : "-"), colVal + 2, y); y += 6;
-        };
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor); rowData("Unit Kerja/Ruangan", data.Ruangan); rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-")); rowData("Jabatan", data.Jabatan);
-        
-        // --- ADD: STATUS PEGAWAI ---
-        rowData("Status Pegawai", getVal(data, ['Status_Pegawai', 'Status', 'status_pegawai']));
-
-        y += 5;
-        doc.setFont("helvetica", "bold"); doc.text("II.   RINCIAN KEJADIAN", 20, y); y += 8; doc.setFont("helvetica", "normal");
-        let hariStr = "..................", tglStr = "..................", jamStr = "..........";
-        if(data.Waktu_Kejadian) {
-            let dateObj = new Date(data.Waktu_Kejadian);
-            if(!isNaN(dateObj)) {
-                let days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-                hariStr = days[dateObj.getDay()]; tglStr = dateObj.toLocaleDateString('id-ID');
-                jamStr = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}).replace('.', ':');
-            }
-        }
-        doc.text("1. Tanggal dan waktu kecelakaan kerja:", startX, y); y += 6; doc.text(`    Hari: ${hariStr}      Tanggal: ${tglStr}      Jam: ${jamStr} WIB`, startX, y); y += 8;
-        doc.text("2. Kecelakaan Kerja:", startX, y); y += 6;
-        let detailKec = "-";
-        if (data.Deskripsi && data.Deskripsi.indexOf("[Kategori:") !== -1) {
-             let match = data.Deskripsi.match(/\[Kategori:\s*(.*?)\]/);
-             if (match) detailKec = match[1];
-        }
-        doc.text("    Kategori: " + (data.Jenis_Laporan || "-"), startX, y); y += 6;
-        doc.text("    Jenis Spesifik: " + detailKec, startX, y); y += 8;
-        doc.text("3. Kronologis Kejadian:", startX, y); y += 6; const splitDeskripsi = doc.splitTextToSize(data.Deskripsi || "-", 160); doc.text(splitDeskripsi, startX + 5, y); y += (splitDeskripsi.length * 5) + 4;
-        doc.text("4. Jenis Kecelakaan Kerja (Sesuai laporan):", startX, y); y += 6; doc.text("    [ v ] " + (data.Jenis_Detail || data.Jenis_Laporan || "Lain-lain"), startX, y); y += 8;
-        
-        doc.text("5. Orang Pertama yang melaporkan kejadian:", startX, y); y += 6; 
-        doc.text("    Nama  : " + (data.Pelapor || "-"), startX + 5, y); y += 6;
-        doc.text("    No WA : " + (data.No_WA || "-"), startX + 5, y); y += 8;
-
-        doc.text("7. Tempat Kejadian Kecelakaan Kerja:", startX, y); y += 6; doc.text("    Lokasi: " + (data.Ruangan_Korban || data.Ruangan || "-"), startX + 5, y); y += 8;
-        if(y > 250) { doc.addPage(); y = 20; }
-        doc.text("10. Akibat Kecelakaan Kerja terhadap:", startX, y); y += 6; const splitAkibat = doc.splitTextToSize(data.Akibat || "Tidak ada cedera berat", 160); doc.text(splitAkibat, startX + 5, y); y += (splitAkibat.length * 5) + 4;
-        doc.text("11. Tindakan yang dilakukan segera setelah kejadian:", startX, y); y += 6; const splitTindakan = doc.splitTextToSize(data.Tindakan_Awal || "-", 160); doc.text(splitTindakan, startX + 5, y); y += (splitTindakan.length * 5) + 4;
-        doc.text("12. Tindakan dilakukan oleh:", startX, y); y += 6; doc.text("    " + (data.Tindakan_Oleh || "-"), startX + 5, y); y += 15;
-
-        // --- ADD: POIN 13 & 14 ---
-        if(y > 240) { doc.addPage(); y = 20; }
-        doc.text("13. Kecelakaan terjadi pada:", startX, y); y += 6;
-        doc.text("    " + (getVal(data, ['Terjadi_Pada', 'terjadi_pada', 'saksi', 'Saksi']) || "-"), startX + 5, y); y += 8;
-        
-        doc.text("14. Kejadian Berulang:", startX, y); y += 6;
-        doc.text("    " + (getVal(data, ['Kejadian_Berulang', 'kejadian_berulang']) || "-"), startX + 5, y); y += 15;
-
-        if(y > 230) { doc.addPage(); y = 20; }
-        const boxW = 80; const boxH = 40; doc.rect(25, y, boxW, 8); doc.rect(25 + boxW, y, boxW, 8); 
-        doc.setFont("helvetica", "bold"); doc.text("Pembuat Laporan", 25 + (boxW/2), y+5, null, null, "center"); doc.text("Penerima Laporan", 25 + boxW + (boxW/2), y+5, null, null, "center"); y += 8;
-        doc.rect(25, y, boxW, boxH); doc.rect(25 + boxW, y, boxW, boxH); doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("Paraf:", 27, y+5); doc.text("Paraf:", 27 + boxW, y+5);
-        
-        let ttdSource = getVal(data, ['ttd_image', 'TTD_Pelapor', 'TTD', 'ttd']);
-        if (ttdSource && ttdSource.includes('data:image')) {
-            try { doc.addImage(ttdSource, 'PNG', 35, y + 5, 60, 25); } catch (e) {}
-        }
-
-        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text(`( ${data.Pelapor} )`, 25 + (boxW/2), y + boxH - 5, null, null, "center"); doc.text("( ........................... )", 25 + boxW + (boxW/2), y + boxH - 5, null, null, "center");
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text(`Tanggal: ${tglStr}`, 27, y + boxH - 35); doc.text("Tanggal: .....................", 27 + boxW, y + boxH - 35); y += boxH + 10;
-        doc.setFontSize(10); doc.text("Grading risiko kejadian* (dapat diisi atasan pelapor)", 25, y); y += 7;
-        const grades = ["Biru", "Hijau", "Kuning", "Merah"]; let xBox = 25;
-        grades.forEach(g => { doc.rect(xBox, y-4, 4, 4); if(data.Grading_Risiko && data.Grading_Risiko.includes(g)) { doc.setFont("helvetica", "bold"); doc.text("X", xBox + 0.5, y-0.5); doc.setFont("helvetica", "normal"); } doc.text(g, xBox + 6, y); xBox += 35; });
-        doc.setFontSize(8); doc.text("NB* = pilih salah satu jawaban", 25, y+10);
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc'; doc.save(`Laporan_RSJ_${safeID}.pdf`);
-    }
-
-    // --- GENERATE PDF INVESTIGASI (SAMA PERSIS ADMIN) ---
-    function generateInvestigationPDF(index) {
-        const data = historyData[index]; 
-        const { jsPDF } = window.jspdf; const doc = new jsPDF();
-        doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.text("LAPORAN TINDAK LANJUT (TELAAH)", 105, 20, null, null, "center"); doc.text("PENANGANAN KECELAKAAN KERJA", 105, 26, null, null, "center"); doc.text("RSJ dr. H. MARZOEKI MAHDI BOGOR", 105, 32, null, null, "center");
-        let y = 50; doc.setFontSize(10); doc.text("I.    DATA PEGAWAI", 20, y); y += 8;
-        doc.setFont("helvetica", "normal"); const startX = 25; const colVal = 70;
-        const rowData = (label, val) => { doc.text(label, startX, y); doc.text(":", colVal, y); doc.text(String(val || "-"), colVal + 2, y); y += 6; };
-        rowData("Nama", data.Nama_Pegawai || data.Pelapor); rowData("Unit Kerja/Ruangan", data.Ruangan); rowData("Umur", (data.Umur ? data.Umur + " Tahun" : "-"));
-        rowData("Tempat, Tanggal Lahir", data.TTL || "-"); rowData("Jenis Kelamin", data.Gender === 'L' ? "Laki-laki" : (data.Gender === 'P' ? "Perempuan" : "-"));
-        doc.text("Jabatan", startX, y); doc.text(":", colVal, y); const jabatanText = doc.splitTextToSize(data.Jabatan || "-", 120); doc.text(jabatanText, colVal + 2, y); y += 6;
-        
-        // --- ADD: STATUS PEGAWAI (DI INVESTIGASI) ---
-        rowData("Status Pegawai", getVal(data, ['Status_Pegawai', 'Status', 'status_pegawai']));
-
-        doc.setFontSize(8); doc.setFont("helvetica", "italic"); doc.text("(Pilih salah satu, coret yang lain)", colVal + 2, y); y += 10;
-        doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("II.   TINDAK LANJUT KEJADIAN KECELAKAAN", 20, y); y += 6;
-        doc.setFontSize(9); doc.setFont("helvetica", "italic"); doc.text("(Kronologis secara terinci atas nama tersebut diatas, teman saat berdinas/atasan)", 25, y); y += 10;
-        doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-        
-        // --- SWAP KRONOLOGI & TINDAKAN (SESUAI REQUEST) ---
-        let contentText = ""; 
-        if (data.Inv_Tindakan) contentText += "KRONOLOGI / HASIL INVESTIGASI:\n" + data.Inv_Tindakan + "\n\n"; 
-        if (data.Inv_Uraian) contentText += "TINDAK LANJUT / PERBAIKAN:\n" + data.Inv_Uraian;
-        
-        if (!contentText) contentText = "................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................";
-        const splitContent = doc.splitTextToSize(contentText, 160); doc.text(splitContent, 25, y);
-        if (!data.Inv_Tindakan && !data.Inv_Uraian) { for(let i=0; i<15; i++) { y+=7; doc.text(".......................................................................................................................................................................", 25, y); } } else { y += (splitContent.length * 5) + 10; }
-        if (y > 230) { doc.addPage(); y = 40; } else { y += 20; }
-        const leftX = 55; const rightX = 155;
-        doc.setFont("helvetica", "normal"); doc.text("Mengetahui,", leftX, y, null, null, "center"); doc.text("Pembuat Laporan", rightX, y, null, null, "center"); y += 5;
-        doc.text("Kepala Instalasi K3", leftX, y, null, null, "center"); y += 25; 
-        doc.setFont("helvetica", "bold"); doc.text("Vitri Lestari", leftX, y, null, null, "center"); 
-        
-        // --- PEMBUAT LAPORAN (KANAN) = ADMIN / PETUGAS INV ---
-        doc.text(`( ${data.Inv_Petugas || "...................."} )`, rightX, y, null, null, "center");
-        
-        doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("NIP. ...........................", leftX, y + 5, null, null, "center");
-        let safeID = data.Ticket_ID || data.ID_Laporan || 'Doc';
-        doc.save(`Laporan_Telaah_${safeID}.pdf`);
-    }
-</script>
+        });
+    </script>
 </body>
 </html>
